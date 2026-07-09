@@ -28,7 +28,7 @@ var SERVICES = [
   { id: 3, name: 'Skægtrimning',           desc: 'Præcis trimning og formgivning af dit skæg.',                            price: 200, minutes: 15 },
   { id: 4, name: 'Dameklipning',           desc: 'Klipning af kort eller langt hår — eller bare spidserne.',               price: 250, minutes: 20 },
   { id: 5, name: 'Voks',                   desc: 'Fjernelse af hår — næse, ører og ansigt.',                               price: 50,  minutes: 10 },
-  { id: 6, name: 'Maskinklipning',         desc: 'Hurtig og præcis maskinklipning — clean og frisk look.',                 price: 150, minutes: 15 }
+  { id: 6, name: 'Maskinklipning',         desc: 'Hurtig og præcis maskinklipning — clean og frisk look. (Fade-klipning indgår som Herreklipning)', price: 150, minutes: 15 }
 ];
 
 // Åbningstider (0 = søndag … 6 = lørdag). null = lukket.
