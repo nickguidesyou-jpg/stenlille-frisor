@@ -8,6 +8,8 @@
 <meta property="og:title" content="Stenlille Herrefrisør — Book tid online">
 <meta property="og:description" content="Skarp klipning i Stenlille. Book din tid online.">
 <meta property="og:image" content="https://stenlilleherrefrisor.dk/img/hero.webp">
+<link rel="icon" href="img/logo.png">
+<link rel="apple-touch-icon" href="img/logo.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400..700&family=Inter+Tight:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -37,8 +39,10 @@ img{max-width:100%;display:block}
 /* Nav */
 nav{position:sticky;top:0;z-index:50;background:rgba(20,18,14,.92);backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
 .nav-in{display:flex;align-items:center;justify-content:space-between;height:62px}
-.logo{font-family:'Fraunces',serif;font-size:19px;color:var(--cream);text-decoration:none;letter-spacing:.3px}
+.logo{font-family:'Fraunces',serif;font-size:19px;color:var(--cream);text-decoration:none;letter-spacing:.3px;
+  display:flex;align-items:center;gap:10px}
 .logo b{color:var(--gold)}
+.logo-img{width:38px;height:38px;border-radius:50%;object-fit:cover;border:2px solid var(--gold);flex:0 0 auto}
 .nav-links{display:flex;gap:22px;align-items:center}
 .nav-links a{color:var(--muted);text-decoration:none;font-size:14.5px;font-weight:500}
 .nav-links a:hover{color:var(--cream)}
@@ -182,7 +186,7 @@ footer{border-top:1px solid var(--line);padding:34px 0;color:var(--muted);font-s
 <body>
 
 <nav><div class="wrap nav-in">
-  <a class="logo" href="#top">Stenlille <b>Herrefrisør</b></a>
+  <a class="logo" href="#top"><img class="logo-img" src="img/logo.webp" alt="" onerror="this.remove()">Stenlille <b>Herrefrisør</b></a>
   <div class="nav-links">
     <a href="#priser">Priser</a>
     <a href="#galleri">Galleri</a>
