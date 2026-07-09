@@ -76,6 +76,7 @@ section{padding:74px 0}
 .services{display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:16px}
 .svc{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:22px;display:flex;flex-direction:column;gap:8px;transition:border-color .15s}
 .svc:hover{border-color:var(--gold)}
+.svc-icons{display:flex;gap:8px;color:var(--gold);margin-bottom:2px}
 .svc-top{display:flex;justify-content:space-between;align-items:baseline;gap:12px}
 .svc h3{font-size:20px}
 .svc-price{font-family:'Fraunces',serif;color:var(--gold-light);font-size:22px;white-space:nowrap}
@@ -91,6 +92,13 @@ section{padding:74px 0}
 .gallery img{width:100%;aspect-ratio:1;object-fit:cover;border-radius:12px;border:1px solid var(--line)}
 .ig-link{margin-top:20px;display:inline-flex;align-items:center;gap:8px;color:var(--muted);text-decoration:none;font-size:14.5px}
 .ig-link:hover{color:var(--gold-light)}
+
+/* Anmeldelser */
+.stars{color:var(--gold-light);letter-spacing:2px}
+.reviews{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:14px}
+.review{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:20px;display:flex;flex-direction:column;gap:12px}
+.review blockquote{font-family:'Fraunces',Georgia,serif;font-size:16.5px;line-height:1.45;flex:1}
+.review figcaption{color:var(--muted);font-size:13.5px;display:flex;justify-content:space-between;align-items:center}
 
 /* Info */
 .info-grid{display:grid;grid-template-columns:1fr 1fr;gap:36px}
@@ -127,6 +135,18 @@ footer{border-top:1px solid var(--line);padding:34px 0;color:var(--muted);font-s
 .pick:hover,.pick.sel{border-color:var(--gold)}
 .pick .sub{color:var(--muted);font-size:13px;display:block}
 .pick .pr{color:var(--gold-light);font-family:'Fraunces',serif;font-size:18px;white-space:nowrap}
+.pick-ic{display:flex;gap:5px;color:var(--gold);flex:0 0 auto}
+
+.p-row{display:flex;align-items:center;gap:8px;padding:3px 0}
+.p-num{color:var(--muted);font-size:13px}
+.p-row b{color:var(--gold-light);white-space:nowrap}
+.p-del{background:none;border:1px solid var(--line);border-radius:6px;color:var(--muted);cursor:pointer;
+  font-size:15px;line-height:1;padding:3px 8px}
+.p-del:hover{border-color:#c96;color:#e08585}
+.p-foot{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-top:10px;padding-top:10px;
+  border-top:1px solid var(--line);font-size:13.5px}
+.p-foot a{font-weight:600;text-decoration:none}
+.p-foot b{color:var(--gold-light)}
 
 .dates{display:flex;gap:8px;overflow-x:auto;padding-bottom:8px;margin-bottom:18px}
 .date-chip{flex:0 0 auto;background:var(--card);border:1px solid var(--line);border-radius:10px;padding:9px 13px;
@@ -166,6 +186,7 @@ footer{border-top:1px solid var(--line);padding:34px 0;color:var(--muted);font-s
   <div class="nav-links">
     <a href="#priser">Priser</a>
     <a href="#galleri">Galleri</a>
+    <a href="#anmeldelser">Anmeldelser</a>
     <a href="#kontakt">Åbningstider &amp; kontakt</a>
     <a class="btn" href="#" onclick="openBooking();return false">Book tid</a>
   </div>
@@ -211,6 +232,19 @@ footer{border-top:1px solid var(--line);padding:34px 0;color:var(--muted);font-s
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="4.5"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none"/></svg>
     @stenlilleherrefrisor
   </a>
+</div></section>
+
+<section id="anmeldelser"><div class="wrap">
+  <div class="sec-head">
+    <h2>Det siger kunderne</h2>
+    <p><span class="stars">★★★★★</span> <b>4.8 ud af 5</b> · 32 anmeldelser på Google</p>
+  </div>
+  <div class="reviews">
+    <figure class="review"><blockquote>&ldquo;Super hyggeligt sted, og arbejdet der udføres er i top!&rdquo;</blockquote><figcaption>— A.V. <span class="stars">★★★★★</span></figcaption></figure>
+    <figure class="review"><blockquote>&ldquo;Meget god kvalitet for prisen, og ejeren er meget sød.&rdquo;</blockquote><figcaption>— M.A. <span class="stars">★★★★★</span></figcaption></figure>
+    <figure class="review"><blockquote>&ldquo;Bedste frisør! Altid en god oplevelse derfra 👌&rdquo;</blockquote><figcaption>— D.R. <span class="stars">★★★★★</span></figcaption></figure>
+    <figure class="review"><blockquote>&ldquo;Meget grundig og fantastisk pris.&rdquo;</blockquote><figcaption>— C.B. <span class="stars">★★★★★</span></figcaption></figure>
+  </div>
 </div></section>
 
 <section id="kontakt"><div class="wrap">
@@ -265,13 +299,25 @@ footer{border-top:1px solid var(--line);padding:34px 0;color:var(--muted);font-s
 /* ================= Konfiguration ================= */
 const API = 'https://script.google.com/macros/s/AKfycbx7bCJ4dVF48K7WPaT2yE2pTtq4bm2mM8c0vJJmb6zqE2kP1tl0dVkpVNwoii9m4Vd51g/exec';
 
+/* Ikoner (inline SVG, streg-stil i guld) */
+const ICONS = {
+  sax: '<circle cx="6" cy="6" r="2.6"/><circle cx="6" cy="18" r="2.6"/><path d="M8.3 7.6 20 19M8.3 16.4 20 5"/>',
+  skaeg: '<path d="M5 10.5V8.5c0-3.3 3.1-5.5 7-5.5s7 2.2 7 5.5v2"/><path d="M5 10.5c0 6.5 3.2 10.5 7 10.5s7-4 7-10.5"/><path d="M9.3 13c.8-.8 1.7-1.1 2.7-1.1s1.9.3 2.7 1.1"/><path d="M10.8 16h2.4"/>',
+  dame: '<circle cx="12" cy="8" r="4"/><path d="M8.5 10.5C6.5 13.5 6 17 6.5 21M15.5 10.5c2 3 2.5 6.5 2 10.5"/>',
+  voks: '<path d="M12 3c3 4.5 6 7.5 6 11a6 6 0 0 1-12 0c0-3.5 3-6.5 6-11z"/>',
+  maskine: '<rect x="8" y="8" width="8" height="12" rx="2"/><path d="M9.5 8V5M12 8V5M14.5 8V5M9 5h6"/><path d="M10.5 13h3"/>'
+};
+function svcIcons(s, size=26){
+  return s.icons.map(k=>`<svg class="svc-ic" width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">${ICONS[k]}</svg>`).join('');
+}
+
 const SERVICES = [
-  { id:1, name:'Herreklipning',        desc:'Klassisk klipning tilpasset dit hår og din stil. Inkl. vask og finish.', price:250, minutes:20 },
-  { id:2, name:'Herreklipning + skæg', desc:'Komplet pakke med klipning og professionel skægtrimning.',               price:400, minutes:30 },
-  { id:3, name:'Skægtrimning',         desc:'Præcis trimning og formgivning af dit skæg.',                            price:200, minutes:15 },
-  { id:4, name:'Dameklipning',         desc:'Klipning af kort eller langt hår — eller bare spidserne.',               price:250, minutes:20 },
-  { id:5, name:'Voks',                 desc:'Fjernelse af hår — næse, ører og ansigt.',                               price:50,  minutes:10 },
-  { id:6, name:'Maskinklipning',       desc:'Hurtig og præcis maskinklipning — clean og frisk look. (Fade-klipning indgår som Herreklipning)', price:150, minutes:15 }
+  { id:1, name:'Herreklipning',        icons:['sax'],          desc:'Klassisk klipning tilpasset dit hår og din stil. Inkl. vask og finish.', price:250, minutes:20 },
+  { id:2, name:'Herreklipning + skæg', icons:['sax','skaeg'],  desc:'Komplet pakke med klipning og professionel skægtrimning.',               price:400, minutes:30 },
+  { id:3, name:'Skægtrimning',         icons:['skaeg'],        desc:'Præcis trimning og formgivning af dit skæg.',                            price:200, minutes:15 },
+  { id:4, name:'Dameklipning',         icons:['dame'],         desc:'Klipning af kort eller langt hår — eller bare spidserne.',               price:250, minutes:20 },
+  { id:5, name:'Voks',                 icons:['voks'],         desc:'Fjernelse af hår — næse, ører og ansigt.',                               price:50,  minutes:10 },
+  { id:6, name:'Maskinklipning',       icons:['maskine'],      desc:'Hurtig og præcis maskinklipning — clean og frisk look. (Fade-klipning indgår som Herreklipning)', price:150, minutes:15 }
 ];
 const CLOSED_DOWS = [0]; // søndag lukket
 const HORIZON_DAYS = 28;
@@ -290,6 +336,7 @@ const esc = s => String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>
 /* ================= Prisliste ================= */
 document.getElementById('serviceGrid').innerHTML = SERVICES.map(s => `
   <div class="svc">
+    <div class="svc-icons">${svcIcons(s)}</div>
     <div class="svc-top"><h3>${s.name}</h3><div class="svc-price">${s.price} kr.</div></div>
     <p>${s.desc}</p>
     <div class="svc-meta">⏱ ca. ${s.minutes} min.</div>
@@ -300,12 +347,16 @@ document.getElementById('serviceGrid').innerHTML = SERVICES.map(s => `
 document.querySelector(`#hoursTable tr[data-dow="${new Date().getDay()}"]`)?.classList.add('today');
 
 /* ================= Booking-flow ================= */
-const B = { step:1, service:null, date:null, time:null };
+// persons: [{serviceId, name}] — flere personer bookes i forlængelse af hinanden
+const B = { step:1, persons:[], date:null, time:null };
+const svcOf = p => SERVICES.find(s=>s.id===p.serviceId);
+const totalPrice = () => B.persons.reduce((a,p)=>a+svcOf(p).price,0);
+const totalMin = () => B.persons.reduce((a,p)=>a+svcOf(p).minutes,0);
 
 function openBooking(serviceId){
-  B.step = 1; B.service = serviceId ? SERVICES.find(s=>s.id===serviceId) : null;
+  B.step = 1; B.persons = serviceId ? [{serviceId, name:''}] : [];
   B.date = null; B.time = null;
-  if (B.service) B.step = 2;
+  if (B.persons.length) B.step = 2;
   document.getElementById('modalBack').classList.add('open');
   document.body.style.overflow = 'hidden';
   renderStep();
@@ -325,11 +376,16 @@ function renderStep(){
   document.getElementById('mTitle').textContent = B.step===4 ? '' : 'Book tid';
 
   if (B.step===1){
-    body.innerHTML = `<div class="pick-list">` + SERVICES.map(s=>`
+    const adding = B.persons.length > 0;
+    body.innerHTML =
+      (adding ? `<p style="color:var(--muted);font-size:14px;margin-bottom:12px">Vælg behandling til <b>person ${B.persons.length+1}</b>:</p>` : '') +
+      `<div class="pick-list">` + SERVICES.map(s=>`
       <button class="pick" onclick="pickService(${s.id})">
-        <span>${s.name}<span class="sub">ca. ${s.minutes} min.</span></span>
+        <span class="pick-ic">${svcIcons(s,22)}</span>
+        <span style="flex:1">${s.name}<span class="sub">ca. ${s.minutes} min.</span></span>
         <span class="pr">${s.price} kr.</span>
-      </button>`).join('') + `</div>`;
+      </button>`).join('') + `</div>` +
+      (adding ? `<div class="modal-actions"><button class="btn btn-ghost" onclick="B.step=2;renderStep()">Tilbage</button></div>` : '');
   }
 
   if (B.step===2){
@@ -339,28 +395,48 @@ function renderStep(){
       const d = new Date(today.getTime()+i*86400000);
       days.push(d);
     }
+    const personRows = B.persons.map((p,i)=>{
+      const s = svcOf(p);
+      return `<div class="p-row">${B.persons.length>1?`<span class="p-num">${i+1}.</span>`:''}
+        <span style="flex:1">${esc(s.name)} <span style="color:var(--muted);font-size:13px">· ${s.minutes} min.</span></span>
+        <b>${s.price} kr.</b>
+        ${B.persons.length>1?`<button class="p-del" onclick="removePerson(${i})" aria-label="Fjern">×</button>`:''}</div>`;
+    }).join('');
     body.innerHTML = `
-      <div class="summary">${esc(B.service.name)} · <b>${B.service.price} kr.</b> · ca. ${B.service.minutes} min.
-        <a href="#" onclick="B.step=1;renderStep();return false" style="float:right;font-size:13px">skift</a></div>
+      <div class="summary">${personRows}
+        <div class="p-foot">
+          <a href="#" onclick="addPerson();return false">+ Tilføj en person mere</a>
+          ${B.persons.length>1?`<span>I alt: <b>${totalPrice()} kr.</b> · ${totalMin()} min.</span>`:''}
+        </div>
+      </div>
       <div class="dates" id="dateRow">` + days.map(d=>{
         const iso = fmtDateISO(d), closed = CLOSED_DOWS.includes(d.getDay());
         return `<button class="date-chip" data-iso="${iso}" ${closed?'disabled':''} onclick="pickDate('${iso}')">
           ${DAY_SHORT[d.getDay()]}<span class="d">${d.getDate()}</span>${MONTH_SHORT[d.getMonth()]}</button>`;
       }).join('') + `</div>
-      <div class="slots" id="slotGrid"><div class="slots-msg">Vælg en dag for at se ledige tider.</div></div>
+      <div class="slots" id="slotGrid"><div class="slots-msg">Vælg en dag for at se ledige tider${B.persons.length>1?' (til alle '+B.persons.length+' personer i træk)':''}.</div></div>
       <div class="modal-actions">
-        <button class="btn btn-ghost" onclick="B.step=1;renderStep()">Tilbage</button>
+        <button class="btn btn-ghost" onclick="B.persons=[];B.step=1;renderStep()">Start forfra</button>
       </div>`;
     if (B.date) pickDate(B.date);
   }
 
   if (B.step===3){
     const d = new Date(B.date+'T12:00:00');
+    let t = B.time;
+    const schedule = B.persons.map((p,i)=>{
+      const s = svcOf(p), row = `${B.persons.length>1?`kl. ${t} — `:''}${esc(s.name)}`;
+      t = addMin(t, s.minutes);
+      return row;
+    });
+    const extraNames = B.persons.length>1 ? B.persons.slice(1).map((p,i)=>`
+      <div class="f-row"><label>Navn på person ${i+2} (valgfri)</label><input id="fName${i+1}" placeholder="Fx din søn, ven eller kollega"></div>`).join('') : '';
     body.innerHTML = `
-      <div class="summary">${esc(B.service.name)} · <b>${B.service.price} kr.</b><br>
-        ${DAY_SHORT[d.getDay()]} d. ${d.getDate()}. ${MONTH_SHORT[d.getMonth()]} kl. <b>${B.time}</b>
+      <div class="summary">${schedule.join('<br>')}<br>
+        ${DAY_SHORT[d.getDay()]} d. ${d.getDate()}. ${MONTH_SHORT[d.getMonth()]} kl. <b>${B.time}</b> · I alt <b>${totalPrice()} kr.</b>
         <a href="#" onclick="B.step=2;renderStep();return false" style="float:right;font-size:13px">skift</a></div>
-      <div class="f-row"><label>Navn *</label><input id="fName" autocomplete="name" placeholder="Dit fulde navn"></div>
+      <div class="f-row"><label>${B.persons.length>1?'Dit navn (person 1) *':'Navn *'}</label><input id="fName" autocomplete="name" placeholder="Dit fulde navn"></div>
+      ${extraNames}
       <div class="f-row"><label>Telefon *</label><input id="fPhone" type="tel" autocomplete="tel" placeholder="12 34 56 78"></div>
       <div class="f-row"><label>Email (valgfri — til bekræftelse)</label><input id="fEmail" type="email" autocomplete="email" placeholder="din@email.dk"></div>
       <div class="f-row"><label>Bemærkning (valgfri)</label><textarea id="fNote" rows="2" placeholder="Fx ønsker til klipningen"></textarea></div>
@@ -371,7 +447,22 @@ function renderStep(){
   }
 }
 
-function pickService(id){ B.service = SERVICES.find(s=>s.id===id); B.step=2; renderStep(); }
+const addMin = (hm, m) => { const t = (+hm.slice(0,2))*60 + (+hm.slice(3,5)) + m;
+  return String(Math.floor(t/60)).padStart(2,'0')+':'+String(t%60).padStart(2,'0'); };
+
+function pickService(id){
+  B.persons.push({serviceId:id, name:''});
+  B.date && (B.time = null); // varighed ændret — tider skal genberegnes
+  B.step = 2; renderStep();
+}
+function addPerson(){
+  if (B.persons.length >= 5) { setErr('Højst 5 personer pr. booking — ring til os for større grupper.'); return; }
+  B.step = 1; renderStep();
+}
+function removePerson(i){
+  B.persons.splice(i,1); B.time = null;
+  renderStep();
+}
 
 async function pickDate(iso){
   B.date = iso; B.time = null;
@@ -379,11 +470,11 @@ async function pickDate(iso){
   const grid = document.getElementById('slotGrid');
   grid.innerHTML = `<div class="slots-msg"><span class="spin"></span>Henter ledige tider…</div>`;
   try {
-    const res = await api('getAvailability', { date: iso, serviceId: B.service.id });
+    const res = await api('getAvailability', { date: iso, serviceIds: B.persons.map(p=>p.serviceId) });
     if (B.date !== iso) return; // brugeren har valgt en anden dag imens
     if (res.error) { grid.innerHTML = `<div class="slots-msg">Kunne ikke hente tider — prøv igen.</div>`; return; }
     if (!res.open) { grid.innerHTML = `<div class="slots-msg">Lukket denne dag.</div>`; return; }
-    if (!res.slots.length) { grid.innerHTML = `<div class="slots-msg">Alt er optaget denne dag — prøv en anden.</div>`; return; }
+    if (!res.slots.length) { grid.innerHTML = `<div class="slots-msg">${B.persons.length>1?'Ingen sammenhængende tid til '+B.persons.length+' personer denne dag — prøv en anden dag.':'Alt er optaget denne dag — prøv en anden.'}</div>`; return; }
     grid.innerHTML = res.slots.map(t=>`<button class="slot" onclick="pickTime('${t}',this)">${t}</button>`).join('');
   } catch(e){
     grid.innerHTML = `<div class="slots-msg">Netværksfejl — tjek din forbindelse og prøv igen.</div>`;
@@ -408,22 +499,27 @@ async function confirmBooking(){
   const btn = document.getElementById('confirmBtn');
   btn.disabled = true; btn.innerHTML = '<span class="spin"></span>Booker…';
   try {
-    const res = await api('createBooking', {
-      serviceId: B.service.id, date: B.date, time: B.time, name, phone, email, note });
+    const persons = B.persons.map((p,i)=>({ serviceId: p.serviceId,
+      name: i===0 ? name : (document.getElementById('fName'+i)?.value.trim() || '') }));
+    const res = await api('createBooking', { persons, date: B.date, time: B.time, name, phone, email, note });
     if (res.error === 'taken') {
       setErr(res.message || 'Tiden er lige blevet optaget — vælg en anden.');
       B.step = 2; renderStep(); return;
     }
     if (res.error) { setErr('Der gik noget galt: ' + res.error); btn.disabled=false; btn.textContent='Bekræft booking'; return; }
     const d = new Date(B.date+'T12:00:00');
+    const multi = persons.length > 1;
+    const lines = (res.schedule || []).map(s =>
+      `${multi ? 'kl. ' + s.time + ' — ' : ''}<b>${esc(s.service)}</b>${multi && s.name ? ' (' + esc(s.name) + ')' : ''}`);
     document.getElementById('mSteps').innerHTML = '';
     document.getElementById('mBody').innerHTML = `
       <div class="done">
         <div class="big">✂️</div>
-        <h3>Din tid er booket!</h3>
-        <p><b>${esc(B.service.name)}</b><br>${DAY_SHORT[d.getDay()]} d. ${d.getDate()}. ${MONTH_SHORT[d.getMonth()]} kl. <b>${B.time}</b><br>
+        <h3>${multi ? 'Jeres tider er booket!' : 'Din tid er booket!'}</h3>
+        <p>${DAY_SHORT[d.getDay()]} d. ${d.getDate()}. ${MONTH_SHORT[d.getMonth()]}${multi ? '' : ' kl. <b>'+B.time+'</b>'}<br>
+        ${lines.join('<br>')}<br>
         Hovedgaden 54, 4295 Stenlille</p>
-        <p style="margin-top:12px">${email ? 'Du får en bekræftelse på email med et annullérings-link.' : 'Bliver du forhindret, så ring på 42 94 55 67.'}</p>
+        <p style="margin-top:12px">${email ? 'Du får en bekræftelse på email med et annullérings-link.' : 'Bliver ' + (multi?'I':'du') + ' forhindret, så ring på 42 94 55 67.'}</p>
         <div class="modal-actions"><button class="btn" onclick="closeBooking()">Færdig</button></div>
       </div>`;
   } catch(e){

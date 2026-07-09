@@ -3,10 +3,12 @@
  *
  * API (fetch POST med Content-Type: text/plain for at undgå CORS-preflight):
  *   { action: 'getServices' }                          → { services: [...] }
- *   { action: 'getAvailability', date, serviceId }     → { slots: ['10:10', ...], open: bool }
- *   { action: 'createBooking', serviceId, date, time, name, phone, email?, note? }
- *                                                      → { ok, bookingId, cancelToken }
- *   { action: 'cancelBooking', bookingId, cancelToken }→ { ok }
+ *   { action: 'getAvailability', date, serviceIds }    → { slots: ['10:10', ...], open: bool }
+ *     (serviceIds: array — flere personer bookes i forlængelse af hinanden;
+ *      serviceId (ental) understøttes stadig)
+ *   { action: 'createBooking', persons: [{serviceId, name}], date, time, name, phone, email?, note? }
+ *                                                      → { ok, bookingId, cancelToken, schedule }
+ *   { action: 'cancelBooking', bookingId, cancelToken }→ { ok }  (bookingId kan være kommasepareret)
  *
  * Script Properties:
  *   CALENDAR_ID   — id på den dedikerede booking-kalender (oprettes af setup())
@@ -56,7 +58,7 @@ function doPost(e) {
   try {
     switch (req.action) {
       case 'getServices':     return json_({ services: SERVICES });
-      case 'getAvailability': return json_(getAvailability(req.date, req.serviceId));
+      case 'getAvailability': return json_(getAvailability(req.date, req.serviceIds || req.serviceId));
       case 'createBooking':   return json_(createBooking(req));
       case 'cancelBooking':   return json_(cancelBooking(req.bookingId, req.cancelToken));
       default:                return json_({ error: 'unknown action' });
@@ -105,10 +107,27 @@ function parseHM_(dateStr, hm) {
   return new Date(dateStr + 'T' + hm + ':00' + z.slice(0, 3) + ':' + z.slice(3));
 }
 
-function getAvailability(dateStr, serviceId) {
+function svcById_(id) {
+  return SERVICES.filter(function (s) { return s.id === Number(id); })[0];
+}
+
+function totalMinutes_(serviceIds) {
+  // serviceIds: enkelt id eller array (flere personer efter hinanden)
+  var ids = Array.isArray(serviceIds) ? serviceIds : [serviceIds];
+  if (!ids.length || ids.length > 5) return null;
+  var total = 0;
+  for (var i = 0; i < ids.length; i++) {
+    var svc = svcById_(ids[i]);
+    if (!svc) return null;
+    total += svc.minutes;
+  }
+  return total;
+}
+
+function getAvailability(dateStr, serviceIds) {
   if (!/^\d{4}-\d{2}-\d{2}$/.test(String(dateStr))) return { error: 'ugyldig dato' };
-  var svc = SERVICES.filter(function (s) { return s.id === Number(serviceId); })[0];
-  if (!svc) return { error: 'ukendt ydelse' };
+  var minutes = totalMinutes_(serviceIds);
+  if (minutes === null) return { error: 'ukendt ydelse' };
 
   var now = new Date();
   var dayStart = parseHM_(dateStr, '00:00');
@@ -128,9 +147,9 @@ function getAvailability(dateStr, serviceId) {
   });
 
   var slots = [];
-  for (var t = openT.getTime(); t + svc.minutes * 60000 <= closeT.getTime(); t += SLOT_STEP_MIN * 60000) {
+  for (var t = openT.getTime(); t + minutes * 60000 <= closeT.getTime(); t += SLOT_STEP_MIN * 60000) {
     if (t < earliest.getTime()) continue;
-    var end = t + svc.minutes * 60000;
+    var end = t + minutes * 60000;
     var conflict = busy.some(function (b) { return t < b.e && end > b.s; });
     if (!conflict) slots.push(Utilities.formatDate(new Date(t), TZ, 'HH:mm'));
   }
@@ -140,8 +159,6 @@ function getAvailability(dateStr, serviceId) {
 /* ---------- Opret booking ---------- */
 
 function createBooking(req) {
-  var svc = SERVICES.filter(function (s) { return s.id === Number(req.serviceId); })[0];
-  if (!svc) return { error: 'ukendt ydelse' };
   var name = String(req.name || '').trim();
   var phone = String(req.phone || '').trim();
   var email = String(req.email || '').trim();
@@ -150,108 +167,153 @@ function createBooking(req) {
   if (!/^\d{4}-\d{2}-\d{2}$/.test(String(req.date)) || !/^\d{2}:\d{2}$/.test(String(req.time)))
     return { error: 'ugyldig dato/tid' };
 
-  // Slottet skal stadig være ledigt (race-guard)
-  var avail = getAvailability(req.date, svc.id);
+  // Personer: array [{serviceId, name}] — eller gammelt format med ét serviceId
+  var rawPersons = Array.isArray(req.persons) && req.persons.length
+    ? req.persons : [{ serviceId: req.serviceId, name: name }];
+  if (rawPersons.length > 5) return { error: 'højst 5 personer pr. booking' };
+  var persons = [];
+  for (var i = 0; i < rawPersons.length; i++) {
+    var svc = svcById_(rawPersons[i].serviceId);
+    if (!svc) return { error: 'ukendt ydelse' };
+    var pName = String(rawPersons[i].name || '').trim() || (i === 0 ? name : 'Person ' + (i + 1));
+    persons.push({ svc: svc, name: pName });
+  }
+  var totalMin = persons.reduce(function (a, p) { return a + p.svc.minutes; }, 0);
+
+  // Hele blokken skal stadig være ledig (race-guard)
+  var avail = getAvailability(req.date, persons.map(function (p) { return p.svc.id; }));
   if (!avail.slots || avail.slots.indexOf(req.time) === -1)
     return { error: 'taken', message: 'Tiden er desværre lige blevet optaget — vælg en anden.' };
 
-  var start = parseHM_(req.date, req.time);
-  var end = new Date(start.getTime() + svc.minutes * 60000);
+  var blockStart = parseHM_(req.date, req.time);
+  var blockEnd = new Date(blockStart.getTime() + totalMin * 60000);
   var token = Utilities.getUuid();
+  var groupNote = persons.length > 1 ? ' (gruppe: ' + persons.length + ' personer)' : '';
 
   var lock = LockService.getScriptLock();
   lock.waitLock(10000);
-  var ev;
+  var events = [];
   try {
     // Dobbelt-tjek under lås
-    var clash = getCalendar_().getEvents(start, end);
+    var clash = getCalendar_().getEvents(blockStart, blockEnd);
     if (clash.length) return { error: 'taken', message: 'Tiden er desværre lige blevet optaget — vælg en anden.' };
-    ev = getCalendar_().createEvent(
-      '✂️ ' + svc.name + ' — ' + name,
-      start, end,
-      { description:
-          'Kunde: ' + name + '\nTelefon: ' + phone +
-          (email ? '\nEmail: ' + email : '') +
-          (note ? '\nBemærkning: ' + note : '') +
-          '\nPris: ' + svc.price + ' kr.' +
-          '\n[token:' + token + ']' }
-    );
+    var t = blockStart.getTime();
+    for (var j = 0; j < persons.length; j++) {
+      var p = persons[j];
+      var s = new Date(t), e = new Date(t + p.svc.minutes * 60000);
+      events.push(getCalendar_().createEvent(
+        '✂️ ' + p.svc.name + ' — ' + p.name + groupNote,
+        s, e,
+        { description:
+            'Kunde: ' + p.name + '\nBooket af: ' + name + '\nTelefon: ' + phone +
+            (email ? '\nEmail: ' + email : '') +
+            (note ? '\nBemærkning: ' + note : '') +
+            '\nPris: ' + p.svc.price + ' kr.' +
+            '\n[token:' + token + ']' }
+      ));
+      t = e.getTime();
+    }
   } finally {
     lock.releaseLock();
   }
 
-  logBooking_([new Date(), req.date, req.time, svc.name, svc.price, name, phone, email, note, ev.getId(), 'booket']);
-  sendMails_(svc, req.date, req.time, name, phone, email, note, ev.getId(), token);
+  var schedule = [];
+  var t2 = blockStart.getTime();
+  for (var k = 0; k < persons.length; k++) {
+    schedule.push({ name: persons[k].name, service: persons[k].svc.name,
+      time: Utilities.formatDate(new Date(t2), TZ, 'HH:mm'), price: persons[k].svc.price });
+    logBooking_([new Date(), req.date, schedule[k].time, persons[k].svc.name, persons[k].svc.price,
+      persons[k].name, phone, email, note, events[k].getId(), 'booket']);
+    t2 += persons[k].svc.minutes * 60000;
+  }
 
-  return { ok: true, bookingId: ev.getId(), cancelToken: token };
+  var ids = events.map(function (ev) { return ev.getId(); }).join(',');
+  sendMails_(persons, schedule, req.date, req.time, name, phone, email, note, ids, token);
+
+  return { ok: true, bookingId: ids, cancelToken: token, schedule: schedule };
 }
 
 /* ---------- Annullér ---------- */
 
 function cancelBooking(bookingId, cancelToken) {
   if (!bookingId || !cancelToken) return { error: 'mangler id/token' };
-  var ev = getCalendar_().getEventById(bookingId);
-  if (!ev) return { error: 'Bookingen findes ikke — måske er den allerede annulleret.' };
-  if ((ev.getDescription() || '').indexOf('[token:' + cancelToken + ']') === -1)
-    return { error: 'ugyldigt annullérings-link' };
-  if (ev.getStartTime() < new Date()) return { error: 'Tiden er allerede passeret.' };
-
-  var title = ev.getTitle();
-  var when = fmtWhen_(ev.getStartTime());
-  ev.deleteEvent();
-  logBooking_([new Date(), '', '', '', '', '', '', '', 'ANNULLERET: ' + title + ' (' + when + ')', bookingId, 'annulleret']);
+  var ids = String(bookingId).split(',');
+  var cancelled = [];
+  for (var i = 0; i < ids.length; i++) {
+    var ev = getCalendar_().getEventById(ids[i]);
+    if (!ev) continue; // allerede annulleret
+    if ((ev.getDescription() || '').indexOf('[token:' + cancelToken + ']') === -1)
+      return { error: 'ugyldigt annullérings-link' };
+    if (ev.getStartTime() < new Date()) return { error: 'Tiden er allerede passeret.' };
+    var title = ev.getTitle();
+    var when = fmtWhen_(ev.getStartTime());
+    ev.deleteEvent();
+    cancelled.push(title + ' (' + when + ')');
+    logBooking_([new Date(), '', '', '', '', '', '', '', 'ANNULLERET: ' + title + ' (' + when + ')', ids[i], 'annulleret']);
+  }
+  if (!cancelled.length) return { error: 'Bookingen findes ikke — måske er den allerede annulleret.' };
 
   var barber = PropertiesService.getScriptProperties().getProperty('BARBER_EMAIL');
   if (barber) {
-    MailApp.sendEmail(barber, 'Afbud: ' + title,
-      'Kunden har annulleret sin tid ' + when + '.\n\nTiden er fjernet fra kalenderen og kan bookes af andre.');
+    MailApp.sendEmail(barber, 'Afbud: ' + cancelled[0],
+      'Kunden har annulleret:\n\n' + cancelled.join('\n') +
+      '\n\nTiden er fjernet fra kalenderen og kan bookes af andre.');
   }
   return { ok: true };
 }
 
 /* ---------- Mails ---------- */
 
-function sendMails_(svc, dateStr, time, name, phone, email, note, bookingId, token) {
+function sendMails_(persons, schedule, dateStr, time, name, phone, email, note, bookingIds, token) {
   var props = PropertiesService.getScriptProperties();
   var barber = props.getProperty('BARBER_EMAIL');
   var site = props.getProperty('SITE_URL') || 'https://stenlilleherrefrisor.dk';
-  var start = parseHM_(dateStr, time);
-  var when = fmtWhen_(start);
-  var cancelUrl = site + '/?annuller=' + encodeURIComponent(bookingId) + '&t=' + encodeURIComponent(token);
+  var when = fmtWhen_(parseHM_(dateStr, time));
+  var cancelUrl = site + '/?annuller=' + encodeURIComponent(bookingIds) + '&t=' + encodeURIComponent(token);
+  var totalPrice = schedule.reduce(function (a, s) { return a + s.price; }, 0);
+  var multi = schedule.length > 1;
+
+  var rowsHtml = schedule.map(function (s) {
+    return '<tr><td style="padding:4px 12px 4px 0;color:#777">kl. ' + s.time + '</td>' +
+      '<td><b>' + esc_(s.service) + '</b>' + (multi ? ' — ' + esc_(s.name) : '') +
+      ' <span style="color:#777">(' + s.price + ' kr.)</span></td></tr>';
+  }).join('');
+  var rowsText = schedule.map(function (s) {
+    return 'kl. ' + s.time + '  ' + s.service + (multi ? ' — ' + s.name : '') + '  (' + s.price + ' kr.)';
+  }).join('\n');
 
   if (email) {
     MailApp.sendEmail({
       to: email,
-      subject: 'Din tid hos Stenlille Herrefrisør er bekræftet ✂️',
+      subject: (multi ? 'Jeres tider' : 'Din tid') + ' hos Stenlille Herrefrisør er bekræftet ✂️',
       htmlBody:
         '<div style="font-family:Georgia,serif;max-width:520px;margin:0 auto;color:#1d1a14">' +
         '<h2 style="color:#b8973a;border-bottom:2px solid #b8973a;padding-bottom:8px">Stenlille Herrefrisør</h2>' +
         '<p>Hej ' + esc_(name) + ',</p>' +
-        '<p>Din tid er bekræftet:</p>' +
-        '<table style="border-collapse:collapse">' +
-        '<tr><td style="padding:4px 12px 4px 0;color:#777">Behandling</td><td><b>' + esc_(svc.name) + '</b></td></tr>' +
-        '<tr><td style="padding:4px 12px 4px 0;color:#777">Tidspunkt</td><td><b>' + when + '</b></td></tr>' +
-        '<tr><td style="padding:4px 12px 4px 0;color:#777">Varighed</td><td>' + svc.minutes + ' min.</td></tr>' +
-        '<tr><td style="padding:4px 12px 4px 0;color:#777">Pris</td><td>' + svc.price + ' kr. (betales i salonen)</td></tr>' +
+        '<p>' + (multi ? 'Jeres tider er bekræftet — I bookes i forlængelse af hinanden' : 'Din tid er bekræftet') + ':</p>' +
+        '<p><b>' + when + '</b></p>' +
+        '<table style="border-collapse:collapse">' + rowsHtml +
+        '<tr><td style="padding:4px 12px 4px 0;color:#777">I alt</td><td><b>' + totalPrice + ' kr.</b> (betales i salonen)</td></tr>' +
         '<tr><td style="padding:4px 12px 4px 0;color:#777">Adresse</td><td>Hovedgaden 54, 4295 Stenlille</td></tr>' +
         '</table>' +
         (note ? '<p style="color:#777">Din bemærkning: ' + esc_(note) + '</p>' : '') +
-        '<p>Bliver du forhindret? <a href="' + cancelUrl + '" style="color:#b8973a">Annullér din tid her</a> — så kan en anden få den.</p>' +
-        '<p style="color:#999;font-size:13px;margin-top:24px">Vi glæder os til at se dig!<br>Stenlille Herrefrisør · Hovedgaden 54, 4295 Stenlille · +45 42 94 55 67</p>' +
+        '<p>Bliver ' + (multi ? 'I' : 'du') + ' forhindret? <a href="' + cancelUrl + '" style="color:#b8973a">Annullér ' +
+        (multi ? 'tiderne' : 'din tid') + ' her</a> — så kan andre få dem.</p>' +
+        '<p style="color:#999;font-size:13px;margin-top:24px">Vi glæder os til at se ' + (multi ? 'jer' : 'dig') + '!<br>' +
+        'Stenlille Herrefrisør · Hovedgaden 54, 4295 Stenlille · +45 42 94 55 67</p>' +
         '</div>'
     });
   }
 
   if (barber) {
-    MailApp.sendEmail(barber, 'Ny booking: ' + svc.name + ' — ' + name + ' (' + when + ')',
-      'Ny online booking:\n\n' +
-      'Behandling: ' + svc.name + ' (' + svc.minutes + ' min, ' + svc.price + ' kr.)\n' +
-      'Tidspunkt: ' + when + '\n' +
-      'Kunde: ' + name + '\n' +
+    MailApp.sendEmail(barber,
+      'Ny booking' + (multi ? ' (' + schedule.length + ' personer)' : '') + ': ' + name + ' — ' + when,
+      'Ny online booking:\n\n' + when + '\n' + rowsText + '\nI alt: ' + totalPrice + ' kr.\n\n' +
+      'Booket af: ' + name + '\n' +
       'Telefon: ' + phone + '\n' +
       (email ? 'Email: ' + email + '\n' : '') +
       (note ? 'Bemærkning: ' + note + '\n' : '') +
-      '\nTiden ligger i kalenderen "' + CAL_NAME + '".');
+      '\nTiderne ligger i kalenderen "' + CAL_NAME + '".');
   }
 }
 
