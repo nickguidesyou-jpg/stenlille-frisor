@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="da">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Stenlille Herrefrisør — Book tid online</title>
+<meta name="description" content="Herrefrisør i Stenlille. Klipning, skægtrimning og maskinklipning. Book din tid online — hurtigt og nemt, ingen ventetid.">
+<meta property="og:title" content="Stenlille Herrefrisør — Book tid online">
+<meta property="og:description" content="Skarp klipning i Stenlille. Book din tid online.">
+<meta property="og:image" content="https://stenlilleherrefrisor.dk/img/hero.webp">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400..700&family=Inter+Tight:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"HairSalon","name":"Stenlille Herrefrisør",
+"url":"https://stenlilleherrefrisor.dk/","telephone":"+45 42 94 55 67",
+"address":{"@type":"PostalAddress","streetAddress":"Hovedgaden 54","postalCode":"4295","addressLocality":"Stenlille","addressCountry":"DK"},
+"geo":{"@type":"GeoCoordinates","latitude":55.5404172,"longitude":11.588968},
+"openingHoursSpecification":[
+{"@type":"OpeningHoursSpecification","dayOfWeek":["Monday","Tuesday","Wednesday","Thursday","Friday"],"opens":"10:10","closes":"18:00"},
+{"@type":"OpeningHoursSpecification","dayOfWeek":"Saturday","opens":"09:10","closes":"14:00"}],
+"priceRange":"kr"}
+</script>
+<style>
+:root{
+  --bg:#14120e; --bg2:#1d1a14; --card:#211d16; --line:#35301f;
+  --gold:#b8973a; --gold-light:#d4b45c; --cream:#f5f0e8; --muted:#a89f8d;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--cream);font-family:'Inter Tight',system-ui,sans-serif;line-height:1.6}
+h1,h2,h3{font-family:'Fraunces',Georgia,serif;font-weight:600;line-height:1.15}
+a{color:var(--gold-light)}
+img{max-width:100%;display:block}
+.wrap{max-width:1060px;margin:0 auto;padding:0 20px}
+
+/* Nav */
+nav{position:sticky;top:0;z-index:50;background:rgba(20,18,14,.92);backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+.nav-in{display:flex;align-items:center;justify-content:space-between;height:62px}
+.logo{font-family:'Fraunces',serif;font-size:19px;color:var(--cream);text-decoration:none;letter-spacing:.3px}
+.logo b{color:var(--gold)}
+.nav-links{display:flex;gap:22px;align-items:center}
+.nav-links a{color:var(--muted);text-decoration:none;font-size:14.5px;font-weight:500}
+.nav-links a:hover{color:var(--cream)}
+@media(max-width:720px){.nav-links a:not(.btn){display:none}}
+
+.btn{display:inline-block;background:var(--gold);color:#171308;border:none;border-radius:8px;
+  padding:11px 22px;font-weight:700;font-size:15px;cursor:pointer;text-decoration:none;
+  font-family:'Inter Tight',sans-serif;transition:transform .12s,background .12s}
+.btn:hover{background:var(--gold-light);transform:translateY(-1px)}
+.btn-ghost{background:transparent;color:var(--cream);border:1px solid var(--line)}
+.btn-ghost:hover{background:var(--bg2);border-color:var(--gold)}
+
+/* Hero */
+header{position:relative;min-height:86vh;display:flex;align-items:center;overflow:hidden}
+.hero-bg{position:absolute;inset:0;background:radial-gradient(ellipse at 70% 30%,#2b2415 0%,var(--bg) 70%)}
+.hero-bg img{width:100%;height:100%;object-fit:cover;opacity:.38}
+.hero-in{position:relative;padding:90px 0}
+.kicker{color:var(--gold);letter-spacing:3px;text-transform:uppercase;font-size:12.5px;font-weight:700;margin-bottom:14px}
+h1{font-size:clamp(38px,7vw,68px);max-width:640px}
+h1 em{font-style:italic;color:var(--gold-light)}
+.hero-sub{color:var(--muted);font-size:18px;max-width:460px;margin:18px 0 30px}
+.hero-cta{display:flex;gap:14px;flex-wrap:wrap;align-items:center}
+.hero-phone{color:var(--muted);font-size:15px;text-decoration:none}
+.hero-phone b{color:var(--cream)}
+
+/* Sektioner */
+section{padding:74px 0}
+.sec-head{margin-bottom:36px}
+.sec-head h2{font-size:clamp(28px,4vw,40px)}
+.sec-head p{color:var(--muted);margin-top:8px;max-width:520px}
+
+/* Priser */
+.services{display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:16px}
+.svc{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:22px;display:flex;flex-direction:column;gap:8px;transition:border-color .15s}
+.svc:hover{border-color:var(--gold)}
+.svc-top{display:flex;justify-content:space-between;align-items:baseline;gap:12px}
+.svc h3{font-size:20px}
+.svc-price{font-family:'Fraunces',serif;color:var(--gold-light);font-size:22px;white-space:nowrap}
+.svc p{color:var(--muted);font-size:14.5px;flex:1}
+.svc-meta{color:var(--muted);font-size:13px}
+.svc button{align-self:flex-start;margin-top:6px;background:none;border:1px solid var(--gold);color:var(--gold-light);
+  border-radius:7px;padding:8px 16px;font-weight:600;font-size:14px;cursor:pointer;font-family:inherit}
+.svc button:hover{background:var(--gold);color:#171308}
+
+/* Galleri */
+#galleri{background:var(--bg2)}
+.gallery{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:12px}
+.gallery img{width:100%;aspect-ratio:1;object-fit:cover;border-radius:12px;border:1px solid var(--line)}
+.ig-link{margin-top:20px;display:inline-flex;align-items:center;gap:8px;color:var(--muted);text-decoration:none;font-size:14.5px}
+.ig-link:hover{color:var(--gold-light)}
+
+/* Info */
+.info-grid{display:grid;grid-template-columns:1fr 1fr;gap:36px}
+@media(max-width:760px){.info-grid{grid-template-columns:1fr}}
+.hours{width:100%;border-collapse:collapse;font-size:15.5px}
+.hours td{padding:9px 0;border-bottom:1px solid var(--line)}
+.hours td:last-child{text-align:right;color:var(--muted)}
+.hours tr.today td{color:var(--gold-light);font-weight:600}
+.contact-item{margin-bottom:16px}
+.contact-item .lbl{color:var(--muted);font-size:13px;text-transform:uppercase;letter-spacing:1.5px;margin-bottom:2px}
+.contact-item a{text-decoration:none;font-size:17px}
+.map{margin-top:26px;border-radius:14px;overflow:hidden;border:1px solid var(--line)}
+.map iframe{display:block;width:100%;height:280px;border:0;filter:grayscale(.35) contrast(1.05)}
+
+footer{border-top:1px solid var(--line);padding:34px 0;color:var(--muted);font-size:13.5px;text-align:center}
+
+/* Booking-modal */
+.modal-back{position:fixed;inset:0;background:rgba(10,9,6,.75);backdrop-filter:blur(4px);z-index:100;
+  display:none;align-items:flex-end;justify-content:center}
+.modal-back.open{display:flex}
+@media(min-width:640px){.modal-back{align-items:center}}
+.modal{background:var(--bg2);border:1px solid var(--line);border-radius:18px 18px 0 0;width:100%;max-width:560px;
+  max-height:92vh;overflow-y:auto;padding:26px 24px 30px}
+@media(min-width:640px){.modal{border-radius:18px}}
+.modal-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
+.modal-head h3{font-size:24px}
+.modal-close{background:none;border:none;color:var(--muted);font-size:26px;cursor:pointer;line-height:1;padding:4px}
+.steps{color:var(--muted);font-size:13px;margin-bottom:20px}
+.steps b{color:var(--gold-light)}
+
+.pick-list{display:flex;flex-direction:column;gap:10px}
+.pick{background:var(--card);border:1px solid var(--line);border-radius:11px;padding:14px 16px;cursor:pointer;
+  display:flex;justify-content:space-between;align-items:center;gap:10px;font-family:inherit;color:var(--cream);font-size:15.5px;text-align:left;width:100%}
+.pick:hover,.pick.sel{border-color:var(--gold)}
+.pick .sub{color:var(--muted);font-size:13px;display:block}
+.pick .pr{color:var(--gold-light);font-family:'Fraunces',serif;font-size:18px;white-space:nowrap}
+
+.dates{display:flex;gap:8px;overflow-x:auto;padding-bottom:8px;margin-bottom:18px}
+.date-chip{flex:0 0 auto;background:var(--card);border:1px solid var(--line);border-radius:10px;padding:9px 13px;
+  cursor:pointer;text-align:center;color:var(--cream);font-family:inherit;font-size:13px;min-width:64px}
+.date-chip .d{font-size:17px;font-weight:700;display:block}
+.date-chip.sel{border-color:var(--gold);background:#2b2415}
+.date-chip:disabled{opacity:.35;cursor:default}
+.slots{display:grid;grid-template-columns:repeat(auto-fill,minmax(76px,1fr));gap:8px;min-height:44px}
+.slot{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:9px 0;cursor:pointer;
+  color:var(--cream);font-family:inherit;font-size:14.5px;text-align:center}
+.slot:hover,.slot.sel{border-color:var(--gold);background:#2b2415}
+.slots-msg{color:var(--muted);font-size:14.5px;grid-column:1/-1;padding:8px 0}
+
+.f-row{margin-bottom:14px}
+.f-row label{display:block;font-size:13px;color:var(--muted);margin-bottom:5px;font-weight:600}
+.f-row input,.f-row textarea{width:100%;background:var(--card);border:1px solid var(--line);border-radius:9px;
+  color:var(--cream);padding:11px 13px;font-size:15.5px;font-family:inherit}
+.f-row input:focus,.f-row textarea:focus{outline:none;border-color:var(--gold)}
+.summary{background:var(--card);border:1px solid var(--line);border-radius:11px;padding:14px 16px;margin-bottom:18px;font-size:14.5px}
+.summary b{color:var(--gold-light)}
+.modal-actions{display:flex;gap:10px;margin-top:20px}
+.modal-actions .btn{flex:1;text-align:center}
+.err{color:#e08585;font-size:14px;margin-top:10px;display:none}
+.spin{display:inline-block;width:16px;height:16px;border:2px solid var(--line);border-top-color:var(--gold);border-radius:50%;
+  animation:sp .7s linear infinite;vertical-align:-3px;margin-right:8px}
+@keyframes sp{to{transform:rotate(360deg)}}
+.done{text-align:center;padding:26px 0}
+.done .big{font-size:52px;margin-bottom:10px}
+.done h3{margin-bottom:10px}
+.done p{color:var(--muted);font-size:15px}
+</style>
+</head>
+<body>
+
+<nav><div class="wrap nav-in">
+  <a class="logo" href="#top">Stenlille <b>Herrefrisør</b></a>
+  <div class="nav-links">
+    <a href="#priser">Priser</a>
+    <a href="#galleri">Galleri</a>
+    <a href="#kontakt">Åbningstider &amp; kontakt</a>
+    <a class="btn" href="#" onclick="openBooking();return false">Book tid</a>
+  </div>
+</div></nav>
+
+<header id="top">
+  <div class="hero-bg"><img src="img/hero.webp" alt="" onerror="this.remove()"></div>
+  <div class="wrap hero-in">
+    <div class="kicker">Herrefrisør · Stenlille</div>
+    <h1>Skarp klipning.<br><em>Uden ventetid.</em></h1>
+    <p class="hero-sub">Book din tid online på under et minut — vælg behandling, dag og tidspunkt, så står stolen klar til dig.</p>
+    <div class="hero-cta">
+      <button class="btn" onclick="openBooking()">Book tid online</button>
+      <a class="hero-phone" href="tel:+4542945567">eller ring <b>42 94 55 67</b></a>
+    </div>
+  </div>
+</header>
+
+<section id="priser"><div class="wrap">
+  <div class="sec-head">
+    <h2>Behandlinger &amp; priser</h2>
+    <p>Alle priser er inkl. moms og betales i salonen efter behandlingen.</p>
+  </div>
+  <div class="services" id="serviceGrid"></div>
+</div></section>
+
+<section id="galleri"><div class="wrap">
+  <div class="sec-head">
+    <h2>Galleri</h2>
+    <p>Et udpluk af vores arbejde — følg os på Instagram for mere.</p>
+  </div>
+  <div class="gallery" id="galleryGrid">
+    <img src="img/gallery-1.webp" alt="Klipning hos Stenlille Herrefrisør" loading="lazy" onerror="this.remove()">
+    <img src="img/gallery-2.webp" alt="Klipning hos Stenlille Herrefrisør" loading="lazy" onerror="this.remove()">
+    <img src="img/gallery-3.webp" alt="Klipning hos Stenlille Herrefrisør" loading="lazy" onerror="this.remove()">
+    <img src="img/gallery-4.webp" alt="Klipning hos Stenlille Herrefrisør" loading="lazy" onerror="this.remove()">
+    <img src="img/gallery-5.webp" alt="Klipning hos Stenlille Herrefrisør" loading="lazy" onerror="this.remove()">
+    <img src="img/gallery-6.webp" alt="Klipning hos Stenlille Herrefrisør" loading="lazy" onerror="this.remove()">
+    <img src="img/gallery-7.webp" alt="Klipning hos Stenlille Herrefrisør" loading="lazy" onerror="this.remove()">
+    <img src="img/gallery-8.webp" alt="Klipning hos Stenlille Herrefrisør" loading="lazy" onerror="this.remove()">
+  </div>
+  <a class="ig-link" href="https://www.instagram.com/stenlilleherrefrisor/" target="_blank" rel="noopener">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="4.5"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none"/></svg>
+    @stenlilleherrefrisor
+  </a>
+</div></section>
+
+<section id="kontakt"><div class="wrap">
+  <div class="sec-head"><h2>Åbningstider &amp; kontakt</h2></div>
+  <div class="info-grid">
+    <div>
+      <table class="hours" id="hoursTable">
+        <tr data-dow="1"><td>Mandag</td><td>10:10 – 18:00</td></tr>
+        <tr data-dow="2"><td>Tirsdag</td><td>10:10 – 18:00</td></tr>
+        <tr data-dow="3"><td>Onsdag</td><td>10:10 – 18:00</td></tr>
+        <tr data-dow="4"><td>Torsdag</td><td>10:10 – 18:00</td></tr>
+        <tr data-dow="5"><td>Fredag</td><td>10:10 – 18:00</td></tr>
+        <tr data-dow="6"><td>Lørdag</td><td>09:10 – 14:00</td></tr>
+        <tr data-dow="0"><td>Søndag</td><td>Lukket</td></tr>
+      </table>
+    </div>
+    <div>
+      <div class="contact-item"><div class="lbl">Adresse</div>
+        <a href="https://maps.google.com/?q=Hovedgaden+54,+4295+Stenlille" target="_blank" rel="noopener">Hovedgaden 54, 4295 Stenlille</a></div>
+      <div class="contact-item"><div class="lbl">Telefon</div>
+        <a href="tel:+4542945567">+45 42 94 55 67</a></div>
+      <div class="contact-item"><div class="lbl">Instagram</div>
+        <a href="https://www.instagram.com/stenlilleherrefrisor/" target="_blank" rel="noopener">@stenlilleherrefrisor</a></div>
+      <button class="btn" style="margin-top:8px" onclick="openBooking()">Book tid online</button>
+    </div>
+  </div>
+  <div class="map">
+    <iframe title="Kort" loading="lazy" referrerpolicy="no-referrer-when-downgrade"
+      src="https://www.google.com/maps?q=Hovedgaden%2054%2C%204295%20Stenlille&output=embed"></iframe>
+  </div>
+</div></section>
+
+<footer><div class="wrap">
+  Stenlille Herrefrisør · Hovedgaden 54, 4295 Stenlille · <a href="tel:+4542945567">42 94 55 67</a><br>
+  Priser er vejledende og inkl. moms. Betaling sker i salonen.
+</div></footer>
+
+<!-- Booking-modal -->
+<div class="modal-back" id="modalBack" onclick="if(event.target===this)closeBooking()">
+  <div class="modal" role="dialog" aria-modal="true" aria-label="Book tid">
+    <div class="modal-head">
+      <h3 id="mTitle">Book tid</h3>
+      <button class="modal-close" onclick="closeBooking()" aria-label="Luk">×</button>
+    </div>
+    <div class="steps" id="mSteps"></div>
+    <div id="mBody"></div>
+    <div class="err" id="mErr"></div>
+  </div>
+</div>
+
+<script>
+/* ================= Konfiguration ================= */
+const API = 'https://script.google.com/macros/s/AKfycbx7bCJ4dVF48K7WPaT2yE2pTtq4bm2mM8c0vJJmb6zqE2kP1tl0dVkpVNwoii9m4Vd51g/exec';
+
+const SERVICES = [
+  { id:1, name:'Herreklipning',        desc:'Klassisk klipning tilpasset dit hår og din stil. Inkl. vask og finish.', price:250, minutes:20 },
+  { id:2, name:'Herreklipning + skæg', desc:'Komplet pakke med klipning og professionel skægtrimning.',               price:400, minutes:30 },
+  { id:3, name:'Skægtrimning',         desc:'Præcis trimning og formgivning af dit skæg.',                            price:200, minutes:15 },
+  { id:4, name:'Dameklipning',         desc:'Klipning af kort eller langt hår — eller bare spidserne.',               price:250, minutes:20 },
+  { id:5, name:'Voks',                 desc:'Fjernelse af hår — næse, ører og ansigt.',                               price:50,  minutes:10 },
+  { id:6, name:'Maskinklipning',       desc:'Hurtig og præcis maskinklipning — clean og frisk look.',                 price:150, minutes:15 }
+];
+const CLOSED_DOWS = [0]; // søndag lukket
+const HORIZON_DAYS = 28;
+
+/* ================= Hjælpere ================= */
+async function api(action, payload={}){
+  const r = await fetch(API, { method:'POST', headers:{'Content-Type':'text/plain'},
+    body: JSON.stringify({ action, ...payload }) });
+  return r.json();
+}
+const fmtDateISO = d => d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+const DAY_SHORT = ['søn','man','tir','ons','tor','fre','lør'];
+const MONTH_SHORT = ['jan','feb','mar','apr','maj','jun','jul','aug','sep','okt','nov','dec'];
+const esc = s => String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+
+/* ================= Prisliste ================= */
+document.getElementById('serviceGrid').innerHTML = SERVICES.map(s => `
+  <div class="svc">
+    <div class="svc-top"><h3>${s.name}</h3><div class="svc-price">${s.price} kr.</div></div>
+    <p>${s.desc}</p>
+    <div class="svc-meta">⏱ ca. ${s.minutes} min.</div>
+    <button onclick="openBooking(${s.id})">Book denne</button>
+  </div>`).join('');
+
+/* Fremhæv dagens åbningstid */
+document.querySelector(`#hoursTable tr[data-dow="${new Date().getDay()}"]`)?.classList.add('today');
+
+/* ================= Booking-flow ================= */
+const B = { step:1, service:null, date:null, time:null };
+
+function openBooking(serviceId){
+  B.step = 1; B.service = serviceId ? SERVICES.find(s=>s.id===serviceId) : null;
+  B.date = null; B.time = null;
+  if (B.service) B.step = 2;
+  document.getElementById('modalBack').classList.add('open');
+  document.body.style.overflow = 'hidden';
+  renderStep();
+}
+function closeBooking(){
+  document.getElementById('modalBack').classList.remove('open');
+  document.body.style.overflow = '';
+}
+function setErr(msg){ const el=document.getElementById('mErr'); el.textContent=msg||''; el.style.display=msg?'block':'none'; }
+
+function renderStep(){
+  setErr('');
+  const steps = document.getElementById('mSteps');
+  const body = document.getElementById('mBody');
+  const names = ['Behandling','Dato & tid','Dine oplysninger'];
+  steps.innerHTML = names.map((n,i)=> (i+1===B.step?`<b>${i+1}. ${n}</b>`:`${i+1}. ${n}`)).join(' &nbsp;·&nbsp; ');
+  document.getElementById('mTitle').textContent = B.step===4 ? '' : 'Book tid';
+
+  if (B.step===1){
+    body.innerHTML = `<div class="pick-list">` + SERVICES.map(s=>`
+      <button class="pick" onclick="pickService(${s.id})">
+        <span>${s.name}<span class="sub">ca. ${s.minutes} min.</span></span>
+        <span class="pr">${s.price} kr.</span>
+      </button>`).join('') + `</div>`;
+  }
+
+  if (B.step===2){
+    const days = [];
+    const today = new Date(); today.setHours(0,0,0,0);
+    for (let i=0;i<HORIZON_DAYS;i++){
+      const d = new Date(today.getTime()+i*86400000);
+      days.push(d);
+    }
+    body.innerHTML = `
+      <div class="summary">${esc(B.service.name)} · <b>${B.service.price} kr.</b> · ca. ${B.service.minutes} min.
+        <a href="#" onclick="B.step=1;renderStep();return false" style="float:right;font-size:13px">skift</a></div>
+      <div class="dates" id="dateRow">` + days.map(d=>{
+        const iso = fmtDateISO(d), closed = CLOSED_DOWS.includes(d.getDay());
+        return `<button class="date-chip" data-iso="${iso}" ${closed?'disabled':''} onclick="pickDate('${iso}')">
+          ${DAY_SHORT[d.getDay()]}<span class="d">${d.getDate()}</span>${MONTH_SHORT[d.getMonth()]}</button>`;
+      }).join('') + `</div>
+      <div class="slots" id="slotGrid"><div class="slots-msg">Vælg en dag for at se ledige tider.</div></div>
+      <div class="modal-actions">
+        <button class="btn btn-ghost" onclick="B.step=1;renderStep()">Tilbage</button>
+      </div>`;
+    if (B.date) pickDate(B.date);
+  }
+
+  if (B.step===3){
+    const d = new Date(B.date+'T12:00:00');
+    body.innerHTML = `
+      <div class="summary">${esc(B.service.name)} · <b>${B.service.price} kr.</b><br>
+        ${DAY_SHORT[d.getDay()]} d. ${d.getDate()}. ${MONTH_SHORT[d.getMonth()]} kl. <b>${B.time}</b>
+        <a href="#" onclick="B.step=2;renderStep();return false" style="float:right;font-size:13px">skift</a></div>
+      <div class="f-row"><label>Navn *</label><input id="fName" autocomplete="name" placeholder="Dit fulde navn"></div>
+      <div class="f-row"><label>Telefon *</label><input id="fPhone" type="tel" autocomplete="tel" placeholder="12 34 56 78"></div>
+      <div class="f-row"><label>Email (valgfri — til bekræftelse)</label><input id="fEmail" type="email" autocomplete="email" placeholder="din@email.dk"></div>
+      <div class="f-row"><label>Bemærkning (valgfri)</label><textarea id="fNote" rows="2" placeholder="Fx ønsker til klipningen"></textarea></div>
+      <div class="modal-actions">
+        <button class="btn btn-ghost" onclick="B.step=2;renderStep()">Tilbage</button>
+        <button class="btn" id="confirmBtn" onclick="confirmBooking()">Bekræft booking</button>
+      </div>`;
+  }
+}
+
+function pickService(id){ B.service = SERVICES.find(s=>s.id===id); B.step=2; renderStep(); }
+
+async function pickDate(iso){
+  B.date = iso; B.time = null;
+  document.querySelectorAll('#dateRow .date-chip').forEach(c=>c.classList.toggle('sel', c.dataset.iso===iso));
+  const grid = document.getElementById('slotGrid');
+  grid.innerHTML = `<div class="slots-msg"><span class="spin"></span>Henter ledige tider…</div>`;
+  try {
+    const res = await api('getAvailability', { date: iso, serviceId: B.service.id });
+    if (B.date !== iso) return; // brugeren har valgt en anden dag imens
+    if (res.error) { grid.innerHTML = `<div class="slots-msg">Kunne ikke hente tider — prøv igen.</div>`; return; }
+    if (!res.open) { grid.innerHTML = `<div class="slots-msg">Lukket denne dag.</div>`; return; }
+    if (!res.slots.length) { grid.innerHTML = `<div class="slots-msg">Alt er optaget denne dag — prøv en anden.</div>`; return; }
+    grid.innerHTML = res.slots.map(t=>`<button class="slot" onclick="pickTime('${t}',this)">${t}</button>`).join('');
+  } catch(e){
+    grid.innerHTML = `<div class="slots-msg">Netværksfejl — tjek din forbindelse og prøv igen.</div>`;
+  }
+}
+
+function pickTime(t, el){
+  B.time = t;
+  document.querySelectorAll('#slotGrid .slot').forEach(s=>s.classList.remove('sel'));
+  el.classList.add('sel');
+  B.step = 3; renderStep();
+}
+
+async function confirmBooking(){
+  const name = document.getElementById('fName').value.trim();
+  const phone = document.getElementById('fPhone').value.trim();
+  const email = document.getElementById('fEmail').value.trim();
+  const note = document.getElementById('fNote').value.trim();
+  if (!name || !phone) { setErr('Udfyld venligst navn og telefonnummer.'); return; }
+  if (phone.replace(/\D/g,'').length < 8) { setErr('Telefonnummeret ser ikke rigtigt ud.'); return; }
+  setErr('');
+  const btn = document.getElementById('confirmBtn');
+  btn.disabled = true; btn.innerHTML = '<span class="spin"></span>Booker…';
+  try {
+    const res = await api('createBooking', {
+      serviceId: B.service.id, date: B.date, time: B.time, name, phone, email, note });
+    if (res.error === 'taken') {
+      setErr(res.message || 'Tiden er lige blevet optaget — vælg en anden.');
+      B.step = 2; renderStep(); return;
+    }
+    if (res.error) { setErr('Der gik noget galt: ' + res.error); btn.disabled=false; btn.textContent='Bekræft booking'; return; }
+    const d = new Date(B.date+'T12:00:00');
+    document.getElementById('mSteps').innerHTML = '';
+    document.getElementById('mBody').innerHTML = `
+      <div class="done">
+        <div class="big">✂️</div>
+        <h3>Din tid er booket!</h3>
+        <p><b>${esc(B.service.name)}</b><br>${DAY_SHORT[d.getDay()]} d. ${d.getDate()}. ${MONTH_SHORT[d.getMonth()]} kl. <b>${B.time}</b><br>
+        Hovedgaden 54, 4295 Stenlille</p>
+        <p style="margin-top:12px">${email ? 'Du får en bekræftelse på email med et annullérings-link.' : 'Bliver du forhindret, så ring på 42 94 55 67.'}</p>
+        <div class="modal-actions"><button class="btn" onclick="closeBooking()">Færdig</button></div>
+      </div>`;
+  } catch(e){
+    setErr('Netværksfejl — din booking blev muligvis ikke oprettet. Prøv igen eller ring til os.');
+    btn.disabled = false; btn.textContent = 'Bekræft booking';
+  }
+}
+
+/* ================= Annullering via mail-link ================= */
+(async function(){
+  const p = new URLSearchParams(location.search);
+  const id = p.get('annuller'), t = p.get('t');
+  if (!id || !t) return;
+  history.replaceState(null,'',location.pathname);
+  if (!confirm('Vil du annullere din tid hos Stenlille Herrefrisør?')) return;
+  try {
+    const res = await api('cancelBooking', { bookingId:id, cancelToken:t });
+    alert(res.ok ? 'Din tid er annulleret. Tak for beskeden!' : ('Kunne ikke annullere: ' + (res.error||'ukendt fejl')));
+  } catch(e){ alert('Netværksfejl — ring til os på 42 94 55 67 for at melde afbud.'); }
+})();
+</script>
+</body>
+</html>
