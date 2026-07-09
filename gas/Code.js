@@ -89,6 +89,15 @@ function getCalendar_() {
 
 /* ---------- Ledige tider ---------- */
 
+var DAYS_DA = ['søndag', 'mandag', 'tirsdag', 'onsdag', 'torsdag', 'fredag', 'lørdag'];
+var MONTHS_DA = ['januar', 'februar', 'marts', 'april', 'maj', 'juni', 'juli', 'august', 'september', 'oktober', 'november', 'december'];
+
+function fmtWhen_(d) {
+  // fx "torsdag d. 9. juli 2026 kl. 10:30" (Utilities.formatDate giver engelske navne)
+  var p = Utilities.formatDate(d, TZ, 'u d M yyyy HH:mm').split(' ');
+  return DAYS_DA[Number(p[0]) % 7] + ' d. ' + p[1] + '. ' + MONTHS_DA[Number(p[2]) - 1] + ' ' + p[3] + ' kl. ' + p[4];
+}
+
 function parseHM_(dateStr, hm) {
   // dateStr: 'YYYY-MM-DD', hm: 'HH:mm' → Date i salonens tidszone (håndterer sommertid)
   var probe = new Date(dateStr + 'T12:00:00Z');
@@ -188,7 +197,7 @@ function cancelBooking(bookingId, cancelToken) {
   if (ev.getStartTime() < new Date()) return { error: 'Tiden er allerede passeret.' };
 
   var title = ev.getTitle();
-  var when = Utilities.formatDate(ev.getStartTime(), TZ, "EEEE d. MMMM 'kl.' HH:mm");
+  var when = fmtWhen_(ev.getStartTime());
   ev.deleteEvent();
   logBooking_([new Date(), '', '', '', '', '', '', '', 'ANNULLERET: ' + title + ' (' + when + ')', bookingId, 'annulleret']);
 
@@ -207,7 +216,7 @@ function sendMails_(svc, dateStr, time, name, phone, email, note, bookingId, tok
   var barber = props.getProperty('BARBER_EMAIL');
   var site = props.getProperty('SITE_URL') || 'https://stenlilleherrefrisor.dk';
   var start = parseHM_(dateStr, time);
-  var when = Utilities.formatDate(start, TZ, "EEEE 'd.' d. MMMM yyyy 'kl.' HH:mm");
+  var when = fmtWhen_(start);
   var cancelUrl = site + '/?annuller=' + encodeURIComponent(bookingId) + '&t=' + encodeURIComponent(token);
 
   if (email) {
