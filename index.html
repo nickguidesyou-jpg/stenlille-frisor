@@ -8,6 +8,7 @@
 <meta property="og:title" content="Stenlille Herrefrisør — Book tid online">
 <meta property="og:description" content="Skarp klipning i Stenlille. Book din tid online.">
 <meta property="og:image" content="https://stenlilleherrefrisor.dk/img/hero.webp">
+<meta name="theme-color" content="#14120e">
 <link rel="icon" href="img/logo.png">
 <link rel="apple-touch-icon" href="img/logo.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -21,6 +22,7 @@
 "openingHoursSpecification":[
 {"@type":"OpeningHoursSpecification","dayOfWeek":["Monday","Tuesday","Wednesday","Thursday","Friday"],"opens":"10:10","closes":"18:00"},
 {"@type":"OpeningHoursSpecification","dayOfWeek":"Saturday","opens":"09:10","closes":"14:00"}],
+"aggregateRating":{"@type":"AggregateRating","ratingValue":"4.8","reviewCount":32,"bestRating":"5","worstRating":"1"},
 "priceRange":"kr"}
 </script>
 <style>
@@ -167,7 +169,7 @@ footer{border-top:1px solid var(--line);padding:34px 0;color:var(--muted);font-s
 .f-row{margin-bottom:14px}
 .f-row label{display:block;font-size:13px;color:var(--muted);margin-bottom:5px;font-weight:600}
 .f-row input,.f-row textarea{width:100%;background:var(--card);border:1px solid var(--line);border-radius:9px;
-  color:var(--cream);padding:11px 13px;font-size:15.5px;font-family:inherit}
+  color:var(--cream);padding:11px 13px;font-size:16px;font-family:inherit} /* 16px: undgår iOS auto-zoom */
 .f-row input:focus,.f-row textarea:focus{outline:none;border-color:var(--gold)}
 .summary{background:var(--card);border:1px solid var(--line);border-radius:11px;padding:14px 16px;margin-bottom:18px;font-size:14.5px}
 .summary b{color:var(--gold-light)}
@@ -369,6 +371,20 @@ function closeBooking(){
   document.getElementById('modalBack').classList.remove('open');
   document.body.style.overflow = '';
 }
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape' && document.getElementById('modalBack').classList.contains('open')) closeBooking();
+});
+
+/* Google Kalender-link til bekræftelsesskærmen */
+function gcalUrl(dateISO, timeHM, minutes, title){
+  const s = new Date(dateISO + 'T' + timeHM + ':00');
+  const e = new Date(s.getTime() + minutes * 60000);
+  const f = d => d.toISOString().replace(/[-:]|\.\d{3}/g, '');
+  return 'https://calendar.google.com/calendar/render?action=TEMPLATE'
+    + '&text=' + encodeURIComponent(title)
+    + '&dates=' + f(s) + '/' + f(e)
+    + '&location=' + encodeURIComponent('Stenlille Herrefrisør, Hovedgaden 54, 4295 Stenlille');
+}
 function setErr(msg){ const el=document.getElementById('mErr'); el.textContent=msg||''; el.style.display=msg?'block':'none'; }
 
 function renderStep(){
@@ -423,6 +439,7 @@ function renderStep(){
         <button class="btn btn-ghost" onclick="B.persons=[];B.step=1;renderStep()">Start forfra</button>
       </div>`;
     if (B.date) pickDate(B.date);
+    else document.querySelector('#dateRow .date-chip:not([disabled])')?.click(); // vis dagens tider med det samme
   }
 
   if (B.step===3){
@@ -476,12 +493,12 @@ async function pickDate(iso){
   try {
     const res = await api('getAvailability', { date: iso, serviceIds: B.persons.map(p=>p.serviceId) });
     if (B.date !== iso) return; // brugeren har valgt en anden dag imens
-    if (res.error) { grid.innerHTML = `<div class="slots-msg">Kunne ikke hente tider — prøv igen.</div>`; return; }
+    if (res.error) { grid.innerHTML = `<div class="slots-msg">Kunne ikke hente tider. <a href="#" onclick="pickDate('${iso}');return false">Prøv igen</a> eller ring <a href="tel:+4542945567">42 94 55 67</a>.</div>`; return; }
     if (!res.open) { grid.innerHTML = `<div class="slots-msg">Lukket denne dag.</div>`; return; }
     if (!res.slots.length) { grid.innerHTML = `<div class="slots-msg">${B.persons.length>1?'Ingen sammenhængende tid til '+B.persons.length+' personer denne dag — prøv en anden dag.':'Alt er optaget denne dag — prøv en anden.'}</div>`; return; }
     grid.innerHTML = res.slots.map(t=>`<button class="slot" onclick="pickTime('${t}',this)">${t}</button>`).join('');
   } catch(e){
-    grid.innerHTML = `<div class="slots-msg">Netværksfejl — tjek din forbindelse og prøv igen.</div>`;
+    grid.innerHTML = `<div class="slots-msg">Netværksfejl — tjek din forbindelse. <a href="#" onclick="pickDate('${iso}');return false">Prøv igen</a></div>`;
   }
 }
 
@@ -524,6 +541,7 @@ async function confirmBooking(){
         ${lines.join('<br>')}<br>
         Hovedgaden 54, 4295 Stenlille</p>
         <p style="margin-top:12px">${email ? 'Du får en bekræftelse på email med et annullérings-link.' : 'Bliver ' + (multi?'I':'du') + ' forhindret, så ring på 42 94 55 67.'}</p>
+        <p style="margin-top:10px"><a href="${gcalUrl(B.date, B.time, totalMin(), 'Stenlille Herrefrisør — ' + (multi ? persons.length + ' personer' : esc(svcOf(B.persons[0]).name)))}" target="_blank" rel="noopener">📅 Føj til din kalender</a></p>
         <div class="modal-actions"><button class="btn" onclick="closeBooking()">Færdig</button></div>
       </div>`;
   } catch(e){

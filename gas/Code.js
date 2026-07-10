@@ -228,7 +228,9 @@ function createBooking(req) {
   }
 
   var ids = events.map(function (ev) { return ev.getId(); }).join(',');
-  sendMails_(persons, schedule, req.date, req.time, name, phone, email, note, ids, token);
+  // Mails må aldrig vælte en gennemført booking (kvote/ugyldig adresse → dobbeltbooking-risiko)
+  try { sendMails_(persons, schedule, req.date, req.time, name, phone, email, note, ids, token); }
+  catch (e) { logBooking_([new Date(), req.date, req.time, 'MAILFEJL', '', name, phone, email, String(e), ids, 'mailfejl']); }
 
   return { ok: true, bookingId: ids, cancelToken: token, schedule: schedule };
 }
@@ -255,9 +257,11 @@ function cancelBooking(bookingId, cancelToken) {
 
   var barber = PropertiesService.getScriptProperties().getProperty('BARBER_EMAIL');
   if (barber) {
-    MailApp.sendEmail(barber, 'Afbud: ' + cancelled[0],
-      'Kunden har annulleret:\n\n' + cancelled.join('\n') +
-      '\n\nTiden er fjernet fra kalenderen og kan bookes af andre.');
+    try {
+      MailApp.sendEmail(barber, 'Afbud: ' + cancelled[0],
+        'Kunden har annulleret:\n\n' + cancelled.join('\n') +
+        '\n\nTiden er fjernet fra kalenderen og kan bookes af andre.');
+    } catch (e) { /* annulleringen er gennemført — mail-fejl må ikke rulle den tilbage */ }
   }
   return { ok: true };
 }
@@ -282,7 +286,8 @@ function sendMails_(persons, schedule, dateStr, time, name, phone, email, note, 
     return 'kl. ' + s.time + '  ' + s.service + (multi ? ' — ' + s.name : '') + '  (' + s.price + ' kr.)';
   }).join('\n');
 
-  if (email) {
+  if (email && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    try {
     MailApp.sendEmail({
       to: email,
       subject: (multi ? 'Jeres tider' : 'Din tid') + ' hos Stenlille Herrefrisør er bekræftet ✂️',
@@ -303,6 +308,7 @@ function sendMails_(persons, schedule, dateStr, time, name, phone, email, note, 
         'Stenlille Herrefrisør · Hovedgaden 54, 4295 Stenlille · +45 42 94 55 67</p>' +
         '</div>'
     });
+    } catch (e) { /* kundemail-fejl må ikke blokere frisørens notifikation */ }
   }
 
   if (barber) {
