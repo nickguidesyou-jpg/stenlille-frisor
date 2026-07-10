@@ -189,7 +189,7 @@ footer{border-top:1px solid var(--line);padding:34px 0;color:var(--muted);font-s
   <a class="logo" href="#top"><img class="logo-img" src="img/logo.png" alt="" onerror="this.remove()">Stenlille <b>Herrefrisør</b></a>
   <div class="nav-links">
     <a href="#priser">Priser</a>
-    <a href="#galleri">Galleri</a>
+    <a href="#galleri" id="navGalleri" style="display:none">Galleri</a>
     <a href="#anmeldelser">Anmeldelser</a>
     <a href="#kontakt">Åbningstider &amp; kontakt</a>
     <a class="btn" href="#" onclick="openBooking();return false">Book tid</a>
@@ -217,20 +217,20 @@ footer{border-top:1px solid var(--line);padding:34px 0;color:var(--muted);font-s
   <div class="services" id="serviceGrid"></div>
 </div></section>
 
-<section id="galleri"><div class="wrap">
+<section id="galleri" style="display:none"><div class="wrap">
   <div class="sec-head">
     <h2>Galleri</h2>
     <p>Klip, skæg og god stemning — følg os på Instagram.</p>
   </div>
   <div class="gallery" id="galleryGrid">
-    <img src="img/gallery-1.webp" alt="Klipning hos Stenlille Herrefrisør" loading="lazy" onerror="this.remove()">
-    <img src="img/gallery-2.webp" alt="Klipning hos Stenlille Herrefrisør" loading="lazy" onerror="this.remove()">
-    <img src="img/gallery-3.webp" alt="Klipning hos Stenlille Herrefrisør" loading="lazy" onerror="this.remove()">
-    <img src="img/gallery-4.webp" alt="Klipning hos Stenlille Herrefrisør" loading="lazy" onerror="this.remove()">
-    <img src="img/gallery-5.webp" alt="Klipning hos Stenlille Herrefrisør" loading="lazy" onerror="this.remove()">
-    <img src="img/gallery-6.webp" alt="Klipning hos Stenlille Herrefrisør" loading="lazy" onerror="this.remove()">
-    <img src="img/gallery-7.webp" alt="Klipning hos Stenlille Herrefrisør" loading="lazy" onerror="this.remove()">
-    <img src="img/gallery-8.webp" alt="Klipning hos Stenlille Herrefrisør" loading="lazy" onerror="this.remove()">
+    <img src="img/gallery-1.webp" alt="Klipning hos Stenlille Herrefrisør" loading="lazy" onload="document.getElementById('galleri').style.display='';document.getElementById('navGalleri').style.display=''" onerror="this.remove()">
+    <img src="img/gallery-2.webp" alt="Klipning hos Stenlille Herrefrisør" loading="lazy" onload="document.getElementById('galleri').style.display='';document.getElementById('navGalleri').style.display=''" onerror="this.remove()">
+    <img src="img/gallery-3.webp" alt="Klipning hos Stenlille Herrefrisør" loading="lazy" onload="document.getElementById('galleri').style.display='';document.getElementById('navGalleri').style.display=''" onerror="this.remove()">
+    <img src="img/gallery-4.webp" alt="Klipning hos Stenlille Herrefrisør" loading="lazy" onload="document.getElementById('galleri').style.display='';document.getElementById('navGalleri').style.display=''" onerror="this.remove()">
+    <img src="img/gallery-5.webp" alt="Klipning hos Stenlille Herrefrisør" loading="lazy" onload="document.getElementById('galleri').style.display='';document.getElementById('navGalleri').style.display=''" onerror="this.remove()">
+    <img src="img/gallery-6.webp" alt="Klipning hos Stenlille Herrefrisør" loading="lazy" onload="document.getElementById('galleri').style.display='';document.getElementById('navGalleri').style.display=''" onerror="this.remove()">
+    <img src="img/gallery-7.webp" alt="Klipning hos Stenlille Herrefrisør" loading="lazy" onload="document.getElementById('galleri').style.display='';document.getElementById('navGalleri').style.display=''" onerror="this.remove()">
+    <img src="img/gallery-8.webp" alt="Klipning hos Stenlille Herrefrisør" loading="lazy" onload="document.getElementById('galleri').style.display='';document.getElementById('navGalleri').style.display=''" onerror="this.remove()">
   </div>
   <a class="ig-link" href="https://www.instagram.com/stenlilleherrefrisor/" target="_blank" rel="noopener">
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="4.5"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none"/></svg>
