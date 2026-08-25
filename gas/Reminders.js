@@ -62,6 +62,7 @@ function remindByEmail_(email, name, what, time, bookingId, token) {
 
   MailApp.sendEmail({
     to: email,
+    name: 'Stenlille Herrefrisør',  // afsendernavn — selve adressen er kontoen der ejer scriptet
     subject: 'Husk din tid i dag kl. ' + time + ' ✂️',
     htmlBody:
       '<div style="font-family:Georgia,serif;max-width:520px;margin:0 auto;color:#1d1a14">' +

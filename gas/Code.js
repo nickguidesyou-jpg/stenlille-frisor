@@ -276,6 +276,7 @@ function sendMails_(persons, schedule, dateStr, time, name, phone, email, note, 
     try {
     MailApp.sendEmail({
       to: email,
+      name: 'Stenlille Herrefrisør',  // afsendernavn — selve adressen er kontoen der ejer scriptet
       subject: (multi ? 'Jeres tider' : 'Din tid') + ' hos Stenlille Herrefrisør er bekræftet ✂️',
       htmlBody:
         '<div style="font-family:Georgia,serif;max-width:520px;margin:0 auto;color:#1d1a14">' +
