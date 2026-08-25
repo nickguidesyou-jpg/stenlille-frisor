@@ -50,7 +50,7 @@ nav{position:sticky;top:0;z-index:50;background:rgba(20,18,14,.92);backdrop-filt
 .nav-links a:hover{color:var(--cream)}
 .nav-links a.btn{color:#171308;font-weight:700}
 .nav-links a.btn:hover{color:#171308}
-@media(max-width:720px){.nav-links a:not(.btn){display:none}}
+/* Mobilmenuen håndteres i opgraderings-blokken nederst i stylesheetet */
 
 .btn{display:inline-block;background:var(--gold);color:#171308;border:none;border-radius:8px;
   padding:11px 22px;font-weight:700;font-size:15px;cursor:pointer;text-decoration:none;
@@ -63,7 +63,8 @@ nav{position:sticky;top:0;z-index:50;background:rgba(20,18,14,.92);backdrop-filt
 header{position:relative;min-height:86vh;display:flex;align-items:center;overflow:hidden}
 .hero-bg{position:absolute;inset:0;background:radial-gradient(ellipse at 70% 30%,#2b2415 0%,var(--bg) 70%)}
 .hero-bg img{width:100%;height:100%;object-fit:cover;object-position:center 22%;opacity:.38}
-.hero-in{position:relative;padding:90px 0}
+/* 20px vandret matcher .wrap — uden det klistrer teksten til kanten under 1060px bredde */
+.hero-in{position:relative;padding:90px 20px}
 .kicker{color:var(--gold);letter-spacing:3px;text-transform:uppercase;font-size:12.5px;font-weight:700;margin-bottom:14px}
 h1{font-size:clamp(38px,7vw,68px);max-width:640px}
 h1 em{font-style:italic;color:var(--gold-light)}
@@ -116,8 +117,9 @@ section{padding:74px 0}
 .contact-item{margin-bottom:16px}
 .contact-item .lbl{color:var(--muted);font-size:13px;text-transform:uppercase;letter-spacing:1.5px;margin-bottom:2px}
 .contact-item a{text-decoration:none;font-size:17px}
-.map{margin-top:26px;border-radius:14px;overflow:hidden;border:1px solid var(--line)}
-.map iframe{display:block;width:100%;height:280px;border:0;filter:grayscale(.35) contrast(1.05)}
+.map{margin-top:26px;border-radius:14px;overflow:hidden;border:1px solid var(--line);background:var(--bg2)}
+.map iframe{display:block;width:100%;height:300px;border:0;
+  filter:grayscale(.45) contrast(1.05) brightness(.82) saturate(.85)}
 
 footer{border-top:1px solid var(--line);padding:34px 0;color:var(--muted);font-size:13.5px;text-align:center}
 
@@ -231,23 +233,142 @@ footer{border-top:1px solid var(--line);padding:34px 0;color:var(--muted);font-s
 .chat-quick button{background:none;border:1px solid var(--line);border-radius:20px;color:var(--muted);
   padding:6px 13px;font-size:13px;cursor:pointer;font-family:inherit}
 .chat-quick button:hover{border-color:var(--gold);color:var(--gold-light)}
+
+/* ================= Visuel opgradering ================= */
+
+/* Fin filmkorn over hele fladen — bryder de store mørke flader op */
+.grain{position:fixed;inset:0;z-index:9999;pointer-events:none;opacity:.028;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")}
+
+:focus-visible{outline:2px solid var(--gold-light);outline-offset:3px;border-radius:6px}
+
+/* Indtoning når sektioner ruller ind.
+   Kun aktiv når JS kører (html.js) — ellers ville indholdet være usynligt uden JavaScript. */
+html.js .reveal{opacity:0;transform:translateY(20px);
+  transition:opacity .75s cubic-bezier(.2,.7,.3,1),transform .75s cubic-bezier(.2,.7,.3,1)}
+html.js .reveal.in{opacity:1;transform:none}
+
+/* Nav: krymper ved scroll, åbent/lukket-status, rigtig menu på mobil */
+nav{transition:box-shadow .25s,background .25s}
+.nav-in{transition:height .25s}
+nav.small .nav-in{height:52px}
+nav.small{box-shadow:0 10px 30px -18px #000;background:rgba(20,18,14,.97)}
+.open-pill{display:inline-flex;align-items:center;gap:7px;font-size:12.5px;font-weight:600;color:var(--muted);
+  border:1px solid var(--line);border-radius:20px;padding:5px 12px;white-space:nowrap}
+.open-pill .dot{width:7px;height:7px;border-radius:50%;background:#79736a;flex:0 0 auto}
+.open-pill.is-open{color:#8fd39a;border-color:#2f5a37}
+.open-pill.is-open .dot{background:#57c46c;animation:pulse 2.6s infinite}
+@keyframes pulse{0%{box-shadow:0 0 0 0 rgba(87,196,108,.55)}70%{box-shadow:0 0 0 7px rgba(87,196,108,0)}100%{box-shadow:0 0 0 0 rgba(87,196,108,0)}}
+.nav-toggle{display:none;background:none;border:1px solid var(--line);border-radius:9px;padding:9px 10px;
+  cursor:pointer;color:var(--cream);line-height:0}
+.nav-toggle:hover{border-color:var(--gold)}
+@media(max-width:720px){
+  .nav-toggle{display:inline-flex}
+  .nav-in{gap:10px}
+  .nav-links{position:fixed;left:0;right:0;top:62px;background:var(--bg2);border-bottom:1px solid var(--line);
+    flex-direction:column;align-items:stretch;gap:0;padding:6px 20px 18px;transform:translateY(-125%);
+    transition:transform .32s cubic-bezier(.2,.7,.3,1);box-shadow:0 20px 40px -24px #000}
+  .nav-links.open{transform:none}
+  .nav-links a:not(.btn){display:block;padding:14px 2px;border-bottom:1px solid var(--line);font-size:16px}
+  .nav-links a.btn{margin-top:14px;text-align:center;padding:13px}
+}
+
+/* Hero */
+.hero-scrim{position:absolute;inset:0;
+  background:linear-gradient(to top,var(--bg) 1%,rgba(20,18,14,.62) 45%,rgba(20,18,14,.2) 100%)}
+.hero-bg img{animation:kenburns 30s ease-in-out infinite alternate}
+@keyframes kenburns{from{transform:scale(1)}to{transform:scale(1.09)}}
+h1,h2,.sec-head p{text-wrap:balance}
+.hero-trust{display:flex;gap:14px;flex-wrap:wrap;align-items:center;margin-top:28px;color:var(--muted);font-size:14px}
+.hero-trust b{color:var(--cream)}
+.hero-trust .sep{opacity:.35}
+.scroll-cue{position:absolute;left:50%;bottom:26px;transform:translateX(-50%);color:var(--muted);
+  display:grid;place-items:center;gap:7px;font-size:11px;letter-spacing:2px;text-transform:uppercase;
+  text-decoration:none;animation:bob 2.6s ease-in-out infinite}
+.scroll-cue:hover{color:var(--gold-light)}
+@keyframes bob{0%,100%{transform:translate(-50%,0)}50%{transform:translate(-50%,7px)}}
+@media(max-width:720px){
+  .scroll-cue{display:none}
+  header{min-height:auto}
+  .hero-in{padding:64px 20px 76px}
+  .hero-trust{gap:10px;font-size:13.5px}
+  .hero-trust .sep{display:none}
+  section{padding:56px 0}
+}
+
+/* Sektionsoverskrifter */
+.eyebrow{color:var(--gold);letter-spacing:2.6px;text-transform:uppercase;font-size:11.5px;font-weight:700;margin-bottom:11px}
+.sec-head h2::after{content:'';display:block;width:44px;height:2px;background:var(--gold);margin-top:15px;border-radius:2px}
+
+/* Prisliste-kort */
+.svc{transition:border-color .18s,transform .2s,box-shadow .2s}
+.svc:hover{transform:translateY(-4px);box-shadow:0 20px 44px -24px #000}
+.svc-icons{transition:transform .25s}
+.svc:hover .svc-icons{transform:scale(1.07)}
+.svc-price{background:linear-gradient(180deg,var(--gold-light),var(--gold));-webkit-background-clip:text;
+  background-clip:text;color:transparent}
+.svc{position:relative}
+
+/* Anmeldelser */
+.g-badge{display:inline-flex;align-items:center;gap:13px;background:var(--card);border:1px solid var(--line);
+  border-radius:13px;padding:12px 18px;margin-top:16px}
+.g-badge .num{font-family:'Fraunces',serif;font-size:27px;color:var(--gold-light);line-height:1}
+.g-badge .meta{font-size:13px;color:var(--muted);line-height:1.4}
+.review{position:relative;overflow:hidden;transition:border-color .18s,transform .2s}
+.review:hover{border-color:var(--gold);transform:translateY(-3px)}
+.review::before{content:'\201D';position:absolute;top:-6px;right:14px;font-family:'Fraunces',serif;
+  font-size:78px;color:var(--gold);opacity:.11;line-height:1;pointer-events:none}
+.rev-who{display:flex;align-items:center;gap:10px}
+.rev-av{width:31px;height:31px;border-radius:50%;background:linear-gradient(140deg,var(--gold-light),#8a6f22);
+  color:#171308;font-weight:700;font-size:12.5px;display:grid;place-items:center;flex:0 0 auto}
+
+/* Åbningstider */
+.hours tr.today td{color:var(--gold-light);font-weight:600}
+.hours tr.today td:first-child::before{content:'▸ ';color:var(--gold)}
+
+/* Fast book-bjælke i bunden på mobil */
+.mobile-cta{position:fixed;left:0;right:0;bottom:0;z-index:60;display:none;gap:10px;align-items:stretch;
+  padding:10px 16px calc(10px + env(safe-area-inset-bottom));background:rgba(20,18,14,.95);
+  backdrop-filter:blur(12px);border-top:1px solid var(--line);
+  transform:translateY(115%);transition:transform .32s cubic-bezier(.2,.7,.3,1)}
+.mobile-cta.show{transform:none}
+.mobile-cta .btn{flex:1;text-align:center;padding:13px}
+.mobile-cta .call{flex:0 0 auto;display:grid;place-items:center;width:50px;border:1px solid var(--line);
+  border-radius:8px;color:var(--cream)}
+.mobile-cta .call:hover{border-color:var(--gold);color:var(--gold-light)}
+@media(max-width:720px){.mobile-cta{display:flex}footer{padding-bottom:96px}}
+
+/* Respekter systemets ønske om mindre bevægelse */
+@media(prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;
+    transition-duration:.01ms!important}
+  html{scroll-behavior:auto}
+  html.js .reveal{opacity:1;transform:none}
+}
 </style>
 </head>
 <body>
 
-<nav><div class="wrap nav-in">
+<div class="grain" aria-hidden="true"></div>
+
+<nav id="nav"><div class="wrap nav-in">
   <a class="logo" href="#top"><img class="logo-img" src="img/logo.png" alt="" onerror="this.remove()">Stenlille <b>Herrefrisør</b></a>
-  <div class="nav-links">
+  <div class="nav-links" id="navLinks">
     <a href="#priser">Priser</a>
     <a href="#galleri" id="navGalleri" style="display:none">Galleri</a>
     <a href="#anmeldelser">Anmeldelser</a>
     <a href="#kontakt">Åbningstider &amp; kontakt</a>
     <a class="btn" href="#" onclick="openBooking();return false">Book tid</a>
   </div>
+  <button class="nav-toggle" id="navToggle" aria-label="Menu" aria-expanded="false" onclick="toggleNav()">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+      <path d="M4 7h16M4 12h16M4 17h16"/></svg>
+  </button>
 </div></nav>
 
 <header id="top">
   <div class="hero-bg"><img src="img/hero.webp" alt="" onerror="this.remove()"></div>
+  <div class="hero-scrim" aria-hidden="true"></div>
   <div class="wrap hero-in">
     <div class="kicker">Herrefrisør · Stenlille</div>
     <h1>Skarp klipning.<br><em>Uden ventetid.</em></h1>
@@ -256,11 +377,23 @@ footer{border-top:1px solid var(--line);padding:34px 0;color:var(--muted);font-s
       <button class="btn" onclick="openBooking()">Book tid online</button>
       <a class="hero-phone" href="tel:+4542945567">eller ring <b>42 94 55 67</b></a>
     </div>
+    <div class="hero-trust">
+      <span class="open-pill" id="heroOpen"><span class="dot"></span><span class="txt">Åbningstider</span></span>
+      <span class="sep">·</span>
+      <span><b>4,8</b> <span class="stars">★★★★★</span> på Google</span>
+      <span class="sep">·</span>
+      <span>Hovedgaden 54, Stenlille</span>
+    </div>
   </div>
+  <a class="scroll-cue" href="#priser" aria-label="Se priser">
+    <span>Se priser</span>
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>
+  </a>
 </header>
 
 <section id="priser"><div class="wrap">
-  <div class="sec-head">
+  <div class="sec-head reveal">
+    <div class="eyebrow">Prisliste</div>
     <h2>Behandlinger &amp; priser</h2>
     <p>Alle priser er inkl. moms og betales i salonen efter behandlingen.</p>
   </div>
@@ -289,21 +422,33 @@ footer{border-top:1px solid var(--line);padding:34px 0;color:var(--muted);font-s
 </div></section>
 
 <section id="anmeldelser"><div class="wrap">
-  <div class="sec-head">
+  <div class="sec-head reveal">
+    <div class="eyebrow">Anmeldelser</div>
     <h2>Det siger kunderne</h2>
-    <p><span class="stars">★★★★★</span> <b>4.8 ud af 5</b> · 32 anmeldelser på Google</p>
+    <div class="g-badge">
+      <div class="num">4,8</div>
+      <div class="meta"><span class="stars">★★★★★</span><br>32 anmeldelser på Google</div>
+    </div>
   </div>
   <div class="reviews">
-    <figure class="review"><blockquote>&ldquo;Super hyggeligt sted, og arbejdet der udføres er i top!&rdquo;</blockquote><figcaption>— A.V. <span class="stars">★★★★★</span></figcaption></figure>
-    <figure class="review"><blockquote>&ldquo;Meget god kvalitet for prisen, og ejeren er meget sød.&rdquo;</blockquote><figcaption>— M.A. <span class="stars">★★★★★</span></figcaption></figure>
-    <figure class="review"><blockquote>&ldquo;Bedste frisør! Altid en god oplevelse derfra 👌&rdquo;</blockquote><figcaption>— D.R. <span class="stars">★★★★★</span></figcaption></figure>
-    <figure class="review"><blockquote>&ldquo;Meget grundig og fantastisk pris.&rdquo;</blockquote><figcaption>— C.B. <span class="stars">★★★★★</span></figcaption></figure>
+    <figure class="review reveal"><blockquote>&ldquo;Super hyggeligt sted, og arbejdet der udføres er i top!&rdquo;</blockquote>
+      <figcaption><span class="rev-who"><span class="rev-av">A</span>A.V.</span> <span class="stars">★★★★★</span></figcaption></figure>
+    <figure class="review reveal"><blockquote>&ldquo;Meget god kvalitet for prisen, og ejeren er meget sød.&rdquo;</blockquote>
+      <figcaption><span class="rev-who"><span class="rev-av">M</span>M.A.</span> <span class="stars">★★★★★</span></figcaption></figure>
+    <figure class="review reveal"><blockquote>&ldquo;Bedste frisør! Altid en god oplevelse derfra 👌&rdquo;</blockquote>
+      <figcaption><span class="rev-who"><span class="rev-av">D</span>D.R.</span> <span class="stars">★★★★★</span></figcaption></figure>
+    <figure class="review reveal"><blockquote>&ldquo;Meget grundig og fantastisk pris.&rdquo;</blockquote>
+      <figcaption><span class="rev-who"><span class="rev-av">C</span>C.B.</span> <span class="stars">★★★★★</span></figcaption></figure>
   </div>
 </div></section>
 
 <section id="kontakt"><div class="wrap">
-  <div class="sec-head"><h2>Åbningstider &amp; kontakt</h2></div>
-  <div class="info-grid">
+  <div class="sec-head reveal">
+    <div class="eyebrow">Find os</div>
+    <h2>Åbningstider &amp; kontakt</h2>
+    <p><span class="open-pill" id="kontaktOpen"><span class="dot"></span><span class="txt">Åbningstider</span></span></p>
+  </div>
+  <div class="info-grid reveal">
     <div>
       <table class="hours" id="hoursTable">
         <tr data-dow="1"><td>Mandag</td><td>10:10 – 18:00</td></tr>
@@ -332,7 +477,7 @@ footer{border-top:1px solid var(--line);padding:34px 0;color:var(--muted);font-s
 </div></section>
 
 <section id="folg"><div class="wrap">
-  <div class="social-card">
+  <div class="social-card reveal">
     <h2>Følg med — og vind en tur i stolen</h2>
     <p>Vi trækker jævnligt lod blandt vores følgere om en <b>gratis klipning</b> eller <b>gratis voks</b>.
        Følg os, så du ikke går glip af det.</p>
@@ -347,6 +492,14 @@ footer{border-top:1px solid var(--line);padding:34px 0;color:var(--muted);font-s
   Priser er vejledende og inkl. moms. Betaling sker i salonen.<br>
   <a href="#" onclick="openChat();return false">Skal du melde afbud?</a>
 </div></footer>
+
+<!-- Fast book-bjælke på mobil -->
+<div class="mobile-cta" id="mobileCta">
+  <button class="btn" onclick="openBooking()">Book tid online</button>
+  <a class="call" href="tel:+4542945567" aria-label="Ring til salonen">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1 1 .4 1.9.7 2.8a2 2 0 0 1-.5 2.1L8.1 9.9a16 16 0 0 0 6 6l1.3-1.2a2 2 0 0 1 2.1-.5c.9.3 1.8.6 2.8.7a2 2 0 0 1 1.7 2z"/></svg>
+  </a>
+</div>
 
 <!-- Afbuds-chat -->
 <div class="modal-back" id="chatBack" onclick="if(event.target===this)closeChat()">
@@ -380,6 +533,8 @@ footer{border-top:1px solid var(--line);padding:34px 0;color:var(--muted);font-s
 </div>
 
 <script>
+document.documentElement.classList.add('js'); // aktiverer indtoning — uden JS vises alt med det samme
+
 /* ================= Konfiguration ================= */
 const API = 'https://script.google.com/macros/s/AKfycbx7bCJ4dVF48K7WPaT2yE2pTtq4bm2mM8c0vJJmb6zqE2kP1tl0dVkpVNwoii9m4Vd51g/exec';
 
@@ -445,7 +600,7 @@ const esc = s => String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>
 
 /* ================= Prisliste ================= */
 document.getElementById('serviceGrid').innerHTML = SERVICES.map(s => `
-  <div class="svc">
+  <div class="svc reveal">
     <div class="svc-icons">${svcIcons(s)}</div>
     <div class="svc-top"><h3>${s.name}</h3><div class="svc-price">${s.price} kr.</div></div>
     <p>${s.desc}</p>
@@ -836,6 +991,62 @@ async function chatConfirm(text){
   if (res && res.found){ C.booking = res; C.intent = 'cancel'; showBooking(); }
   else chatPush('bot',`Jeg kan ikke finde den tid — måske er den allerede aflyst. Driller det, så ring til os på ${TLF_LINK}.`);
 })();
+
+/* ================= Visuelle detaljer ================= */
+
+/* Åbent eller lukket lige nu. Bruger den besøgendes ur — fint til en lokal salon,
+   men en kunde med forkert tidszone kan se en skæv status. */
+const OPEN_HOURS = { 0:null, 1:['10:10','18:00'], 2:['10:10','18:00'], 3:['10:10','18:00'],
+                     4:['10:10','18:00'], 5:['10:10','18:00'], 6:['09:10','14:00'] };
+const DAY_LONG = ['søndag','mandag','tirsdag','onsdag','torsdag','fredag','lørdag'];
+const hm2min = s => (+s.slice(0,2))*60 + (+s.slice(3,5));
+
+function openState(){
+  const now = new Date(), dow = now.getDay(), mins = now.getHours()*60 + now.getMinutes();
+  const today = OPEN_HOURS[dow];
+  if (today && mins >= hm2min(today[0]) && mins < hm2min(today[1]))
+    return { open:true, text:`Åbent nu · lukker ${today[1]}` };
+  if (today && mins < hm2min(today[0]))
+    return { open:false, text:`Åbner i dag kl. ${today[0]}` };
+  for (let i=1; i<=7; i++){
+    const d = (dow+i)%7, h = OPEN_HOURS[d];
+    if (h) return { open:false, text:`Åbner ${i===1?'i morgen':DAY_LONG[d]} kl. ${h[0]}` };
+  }
+  return { open:false, text:'Lukket' };
+}
+function paintOpenState(){
+  const s = openState();
+  document.querySelectorAll('.open-pill').forEach(el=>{
+    el.classList.toggle('is-open', s.open);
+    el.querySelector('.txt').textContent = s.text;
+  });
+}
+paintOpenState();
+setInterval(paintOpenState, 60000);
+
+/* Nav: krymper ved scroll, mobilmenu, book-bjælke i bunden */
+const navLinks = document.getElementById('navLinks');
+function toggleNav(){
+  const open = navLinks.classList.toggle('open');
+  document.getElementById('navToggle').setAttribute('aria-expanded', String(open));
+}
+navLinks.addEventListener('click', e => { if (e.target.closest('a')) navLinks.classList.remove('open'); });
+addEventListener('scroll', () => {
+  document.getElementById('nav').classList.toggle('small', scrollY > 40);
+  document.getElementById('mobileCta').classList.toggle('show', scrollY > innerHeight * 0.55);
+}, { passive:true });
+
+/* Indtoning — forskudt inden for hver gruppe, så kort ikke popper op samtidig */
+const io = new IntersectionObserver(entries => {
+  entries.forEach(en => { if (en.isIntersecting){ en.target.classList.add('in'); io.unobserve(en.target); } });
+}, { rootMargin:'0px 0px -6% 0px', threshold:0.06 });
+document.querySelectorAll('.reveal').forEach(el => {
+  const group = [...el.parentElement.children].filter(c => c.classList.contains('reveal'));
+  el.style.transitionDelay = Math.min(group.indexOf(el), 5) * 80 + 'ms';
+  io.observe(el);
+});
+// Sikkerhedsnet: skulle observeren svigte, må indholdet aldrig blive hængende usynligt
+setTimeout(() => document.querySelectorAll('.reveal:not(.in)').forEach(el => el.classList.add('in')), 3500);
 </script>
 </body>
 </html>
