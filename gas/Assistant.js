@@ -1,33 +1,37 @@
 /**
- * Stenlille Herrefrisør — AI-booking.
+ * Stenlille Herrefrisør — AI-booking på en gratis model.
  *
- * Kunden skriver i fritekst ("jeg vil gerne booke to klipninger på lørdag"),
- * og modellen oversætter det til et bookingudkast. Den stiller selv de
- * spørgsmål der mangler svar på.
+ * Bruger Google Gemini, som har et gratis niveau: API-nøgle hentes på
+ * https://aistudio.google.com/apikey uden betalingskort. Nøglen sættes som
+ * GEMINI_KEY i Script Properties. Uden den er assistenten slået fra, og
+ * chatten henviser til den almindelige bookingknap.
  *
- * Ansvarsfordeling — vigtig:
- *   Modellen håndterer SPROG. Den bestemmer aldrig hvad der er ledigt, og
- *   den opretter aldrig noget. Ledige tider kommer fra getAvailability, og
- *   selve bookingen sker gennem createBooking efter at kunden har trykket
- *   på en rigtig bekræft-knap. Finder modellen på en tid der ikke findes,
- *   bliver den afvist af den almindelige race-guard som alle andre.
+ * PERSONOPLYSNINGER SENDES ALDRIG TIL MODELLEN.
+ * Gratis niveauer hos alle udbydere forbeholder sig typisk ret til at bruge
+ * data til at forbedre deres modeller. Derfor håndterer assistenten kun
+ * behandling, dag og tidspunkt. Navn, telefon og email indtastes bagefter
+ * i et almindeligt felt og går direkte til createBooking — de kommer aldrig
+ * forbi Google.
  *
- * Siden er offentlig, så alle kald koster ejeren penge. Derfor: daglig
- * kvote, loft over samtalelængde, korte svar og en billig model.
- * Uden ANTHROPIC_KEY i Script Properties er hele funktionen slået fra.
+ * Modellen bestemmer heller ikke hvad der er ledigt: ledige tider hentes af
+ * getAvailability og sendes med ind, og selve bookingen sker først når
+ * kunden trykker bekræft.
  *
  * Action:
  *   { action:'assistant', messages:[{role,content}], slots:[...] }
- *     → { reply, draft:{serviceIds,date,time,name,phone,email}, ready }
+ *     → { reply, draft:{serviceIds,date,time}, ready }
  */
 
-var AI_MODEL        = 'claude-haiku-4-5-20251001';
-var AI_DAILY_LIMIT  = 250;   // maks. kald pr. døgn på tværs af alle besøgende
-var AI_MAX_MESSAGES = 24;    // en booking skal aldrig kræve flere end det
-var AI_MAX_CHARS    = 400;   // pr. kundebesked
+var AI_DAILY_LIMIT  = 400;   // maks. kald pr. døgn — siden er offentlig
+var AI_MAX_MESSAGES = 20;
+var AI_MAX_CHARS    = 300;
+var AI_DEFAULT_MODEL = 'gemini-2.0-flash';
 
-function aiEnabled_() {
-  return !!PropertiesService.getScriptProperties().getProperty('ANTHROPIC_KEY');
+function aiKey_()   { return PropertiesService.getScriptProperties().getProperty('GEMINI_KEY'); }
+function aiEnabled_() { return !!aiKey_(); }
+function aiModel_() {
+  // Gør modelnavnet til en indstilling, så et udgået modelnavn kan rettes uden kodeændring
+  return PropertiesService.getScriptProperties().getProperty('GEMINI_MODEL') || AI_DEFAULT_MODEL;
 }
 
 function aiQuotaTake_() {
@@ -41,45 +45,40 @@ function aiQuotaTake_() {
 
 function aiSystemPrompt_(slots) {
   var svc = SERVICES.map(function (s) {
-    var fee = feeForService_(s);
-    return '- id ' + s.id + ': ' + s.name + ', ' + s.price + ' kr., ' + s.minutes + ' min.' +
-      (fee ? ' (afbudsgebyr ' + fee + ' kr.)' : ' (fritaget for afbudsgebyr)');
+    return '- id ' + s.id + ': ' + s.name + ', ' + s.price + ' kr., ' + s.minutes + ' min.';
   }).join('\n');
-
-  var today = Utilities.formatDate(new Date(), TZ, 'yyyy-MM-dd');
-  var todayName = DAYS_DA[Number(Utilities.formatDate(new Date(), TZ, 'u')) % 7];
+  var now = new Date();
+  var today = Utilities.formatDate(now, TZ, 'yyyy-MM-dd');
+  var todayName = DAYS_DA[Number(Utilities.formatDate(now, TZ, 'u')) % 7];
 
   return [
-    'Du er bookingassistent for Stenlille Herrefrisør, Hovedgaden 54, 4295 Stenlille.',
-    'Du skriver kort, venligt og på dansk. Du dur ikke til smalltalk — du hjælper med at booke tid.',
+    'Du er bookingassistent for Stenlille Herrefrisør. Du svarer kort og venligt på dansk.',
     '',
     'BEHANDLINGER:',
     svc,
     '',
     'ÅBNINGSTIDER: mandag-fredag 10:10-18:00, lørdag 09:10-14:00, søndag lukket.',
-    'I DAG er det ' + todayName + ' den ' + today + '. Der kan bookes op til ' + HORIZON_DAYS + ' dage frem.',
+    'I dag er det ' + todayName + ' den ' + today + '. Der kan bookes op til ' + HORIZON_DAYS + ' dage frem.',
     '',
-    'AFBUDSREGLER: gratis afbud indtil ' + FREE_CANCEL_HOURS + ' timer før. Senere afbud koster',
-    'gebyret for behandlingen på MobilePay ' + MOBILEPAY_NUMBER + ', og kunden kan ikke booke igen før det er betalt.',
-    'Voks er fritaget. Nævn kun reglerne hvis kunden spørger — de står alligevel til godkendelse før bekræftelse.',
+    'DIN OPGAVE er at finde tre ting: hvilke behandlinger, hvilken dag og hvilket klokkeslæt.',
+    '1. Behandlinger: ét id pr. person. To klipninger = [1,1]. Højst 5 personer.',
+    '2. Dag: omsæt "på lørdag", "i morgen" og lignende til datoformatet ÅÅÅÅ-MM-DD.',
+    '3. Klokkeslæt: når behandlinger og dag er på plads, får du en liste med LEDIGE TIDER.',
+    '   Foreslå 2-3 af dem. Nævn ALDRIG et klokkeslæt der ikke står på listen.',
+    '   Er listen tom, sig at dagen er optaget og foreslå en anden dag.',
     '',
-    'SÅDAN ARBEJDER DU:',
-    '1. Find ud af hvilke behandlinger og hvor mange personer. Flere personer bookes i forlængelse af hinanden, højst 5.',
-    '2. Find ud af hvilken dag. Omsæt "på lørdag", "i morgen" osv. til en dato i formatet YYYY-MM-DD.',
-    '3. Når du kender behandlinger og dato, får du en liste med LEDIGE TIDER. Foreslå 2-3 af dem.',
-    '   Du må ALDRIG nævne et klokkeslæt der ikke står på listen. Er listen tom, foreslå en anden dag.',
-    '4. Bed derefter om navn, telefonnummer og email. Alle tre er påkrævet.',
-    '5. Når alt er udfyldt, sætter du ready til true og skriver en kort opsummering.',
+    'DU MÅ IKKE spørge om navn, telefonnummer eller email. Det klarer systemet bagefter.',
+    'Spørger kunden om priser, åbningstider eller hvor salonen ligger, svarer du kort og hjælper videre.',
+    'Handler det om afbud, siger du at de skal skrive "jeg vil aflyse min tid".',
+    'Stil ét spørgsmål ad gangen, og gentag ikke noget kunden allerede har sagt.',
     '',
-    'Stil ét spørgsmål ad gangen. Gentag ikke noget kunden allerede har oplyst.',
-    slots && slots.length ? '\nLEDIGE TIDER på den valgte dato: ' + slots.join(', ')
-      : (slots ? '\nLEDIGE TIDER på den valgte dato: ingen — dagen er optaget eller lukket.' : ''),
+    slots == null ? '' :
+      (slots.length ? 'LEDIGE TIDER på den valgte dato: ' + slots.join(', ')
+                    : 'LEDIGE TIDER på den valgte dato: ingen — dagen er optaget eller lukket.'),
     '',
-    'Svar KUN med JSON i præcis denne form, uden markdown og uden tekst udenom:',
-    '{"reply":"din besked til kunden","draft":{"serviceIds":[1],"date":"YYYY-MM-DD eller null",' +
-      '"time":"HH:MM eller null","name":"","phone":"","email":""},"ready":false}',
-    'serviceIds er ét id pr. person. To klipninger = [1,1].',
-    'Felter du endnu ikke kender, skal være null eller tom streng — gæt aldrig.'
+    'Svar altid med JSON i præcis denne form:',
+    '{"reply":"din besked til kunden","serviceIds":[1],"date":"ÅÅÅÅ-MM-DD eller null","time":"TT:MM eller null"}',
+    'Felter du ikke kender endnu, skal være null eller en tom liste. Gæt aldrig.'
   ].join('\n');
 }
 
@@ -89,35 +88,30 @@ function assistantTurn(req) {
   var msgs = Array.isArray(req.messages) ? req.messages : [];
   if (!msgs.length) return { error: 'ingen besked' };
   if (msgs.length > AI_MAX_MESSAGES)
-    return { error: 'for_lang', reply: 'Samtalen er blevet lang — ring til os på ' + SALON_PHONE + ', så finder vi en tid.' };
+    return { error: 'for_lang', reply: 'Samtalen er blevet lang — prøv knappen "Book tid online", eller ring på ' + SALON_PHONE + '.' };
 
-  // Normalisér og beskær: modellen skal aldrig se andet end korte kunde-/assistentbeskeder
-  var clean = [];
+  var contents = [];
   for (var i = 0; i < msgs.length; i++) {
-    var role = msgs[i].role === 'assistant' ? 'assistant' : 'user';
-    var content = String(msgs[i].content || '').slice(0, AI_MAX_CHARS);
-    if (content) clean.push({ role: role, content: content });
+    var text = String(msgs[i].content || '').slice(0, AI_MAX_CHARS);
+    if (!text) continue;
+    contents.push({ role: msgs[i].role === 'assistant' ? 'model' : 'user', parts: [{ text: text }] });
   }
-  if (!clean.length || clean[clean.length - 1].role !== 'user') return { error: 'ingen besked' };
+  if (!contents.length || contents[contents.length - 1].role !== 'user') return { error: 'ingen besked' };
 
   if (!aiQuotaTake_())
-    return { error: 'kvote', reply: 'Assistenten har travlt lige nu. Book i stedet via knappen "Book tid online" — eller ring på ' + SALON_PHONE + '.' };
+    return { error: 'kvote', reply: 'Assistenten har nået dagens grænse. Book via knappen "Book tid online" — eller ring på ' + SALON_PHONE + '.' };
 
-  var body = {
-    model: AI_MODEL,
-    max_tokens: 700,
-    system: aiSystemPrompt_(req.slots),
-    messages: clean
-  };
+  var url = 'https://generativelanguage.googleapis.com/v1beta/models/' +
+            encodeURIComponent(aiModel_()) + ':generateContent?key=' + encodeURIComponent(aiKey_());
 
-  var res = UrlFetchApp.fetch('https://api.anthropic.com/v1/messages', {
+  var res = UrlFetchApp.fetch(url, {
     method: 'POST',
     contentType: 'application/json',
-    headers: {
-      'x-api-key': PropertiesService.getScriptProperties().getProperty('ANTHROPIC_KEY'),
-      'anthropic-version': '2023-06-01'
-    },
-    payload: JSON.stringify(body),
+    payload: JSON.stringify({
+      systemInstruction: { parts: [{ text: aiSystemPrompt_(req.slots) }] },
+      contents: contents,
+      generationConfig: { temperature: 0.2, maxOutputTokens: 500, responseMimeType: 'application/json' }
+    }),
     muteHttpExceptions: true
   });
 
@@ -129,46 +123,34 @@ function assistantTurn(req) {
   var out;
   try {
     var data = JSON.parse(res.getContentText());
-    var text = (data.content || []).map(function (c) { return c.text || ''; }).join('').trim();
+    var text = ((((data.candidates || [])[0] || {}).content || {}).parts || [])
+      .map(function (p) { return p.text || ''; }).join('').trim();
     text = text.replace(/^```(?:json)?\s*/i, '').replace(/```\s*$/, '').trim();
     out = JSON.parse(text);
   } catch (e) {
     return { error: 'ai_svar', reply: 'Der gik kludder i den. Prøv at skrive det igen — eller brug "Book tid online".' };
   }
-
   return sanitiseDraft_(out);
 }
 
-/** Modellens output er data, ikke sandhed — alt valideres før frontenden ser det. */
+/** Modellens svar er data, ikke sandhed — alt valideres før frontenden ser det. */
 function sanitiseDraft_(out) {
-  var d = (out && out.draft) || {};
+  out = out || {};
   var ids = [];
-  if (Array.isArray(d.serviceIds)) {
-    for (var i = 0; i < d.serviceIds.length && ids.length < 5; i++) {
-      if (svcById_(d.serviceIds[i])) ids.push(Number(d.serviceIds[i]));
+  if (Array.isArray(out.serviceIds)) {
+    for (var i = 0; i < out.serviceIds.length && ids.length < 5; i++) {
+      if (svcById_(out.serviceIds[i])) ids.push(Number(out.serviceIds[i]));
     }
   }
-  var date = /^\d{4}-\d{2}-\d{2}$/.test(String(d.date || '')) ? d.date : null;
-  var time = /^\d{2}:\d{2}$/.test(String(d.time || '')) ? d.time : null;
-  var email = String(d.email || '').trim();
-
   var draft = {
     serviceIds: ids,
-    date: date,
-    time: time,
-    name: String(d.name || '').trim().slice(0, 80),
-    phone: normPhone_(d.phone).slice(0, 12),
-    email: /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) ? email : ''
+    date: /^\d{4}-\d{2}-\d{2}$/.test(String(out.date || '')) ? out.date : null,
+    time: /^\d{2}:\d{2}$/.test(String(out.time || '')) ? out.time : null
   };
-
-  // "ready" er kun sandt hvis alt reelt er der — modellen må ikke skynde på processen
-  var ready = !!(draft.serviceIds.length && draft.date && draft.time &&
-                 draft.name && draft.phone.length >= 8 && draft.email);
-
   return {
     ok: true,
-    reply: String((out && out.reply) || '').slice(0, 900),
+    reply: String(out.reply || '').slice(0, 800),
     draft: draft,
-    ready: ready
+    ready: !!(draft.serviceIds.length && draft.date && draft.time)
   };
 }

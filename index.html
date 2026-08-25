@@ -1051,7 +1051,9 @@ async function aiStep(){
     return;
   }
 
-  C.ai.push({ role:'assistant', content:JSON.stringify({ reply:res.reply, draft:res.draft, ready:res.ready }) });
+  // Gem svaret i modellens eget format, så samtalen er konsistent for den
+  C.ai.push({ role:'assistant', content:JSON.stringify({ reply:res.reply,
+    serviceIds:res.draft.serviceIds, date:res.draft.date, time:res.draft.time }) });
   C.draft = res.draft;
   chatPush('bot', esc(res.reply).replace(/\n/g,'<br>'));
 
@@ -1072,41 +1074,59 @@ async function aiStep(){
   if (C.slots && C.slots.length && !res.draft.time) chatQuick(C.slots.slice(0,8));
 }
 
+/* Kontaktoplysningerne indtastes her — de sendes direkte til bookingen og
+   kommer aldrig forbi sprogmodellen. Se forklaringen øverst i gas/Assistant.js. */
 function aiConfirmCard(d){
   const navne = d.serviceIds.map(id => SERVICES.find(s=>s.id===id).name);
   const pris  = d.serviceIds.reduce((a,id)=> a + SERVICES.find(s=>s.id===id).price, 0);
   const gebyr = d.serviceIds.reduce((a,id)=> a + (LATE_FEE[id] ?? 100), 0);
   const el = chatPush('bot',
-    `<b>${esc(navne.join(' + '))}</b><br>${daDato(d.date)} kl. <b>${d.time}</b><br>`
-    + `${esc(d.name)} · ${esc(d.phone)} · ${esc(d.email)}<br>I alt <b>${pris} kr.</b>`
-    + `<label class="rules-accept" style="margin-top:13px;padding-top:13px">`
+    `Perfekt — så mangler jeg kun dine oplysninger:<br><br>`
+    + `<b>${esc(navne.join(' + '))}</b><br>${daDato(d.date)} kl. <b>${d.time}</b> · I alt <b>${pris} kr.</b>`
+    + `<div class="f-row" style="margin-top:14px"><label>Navn</label><input id="aiName" autocomplete="name" placeholder="Dit fulde navn"></div>`
+    + `<div class="f-row"><label>Telefon</label><input id="aiPhone" type="tel" autocomplete="tel" placeholder="12 34 56 78"></div>`
+    + `<div class="f-row"><label>Email</label><input id="aiEmail" type="email" autocomplete="email" placeholder="din@email.dk"></div>`
+    + `<label class="rules-accept" style="padding-top:12px">`
     + `<input type="checkbox" id="aiAccept">`
     + `<span>${gebyr
         ? `Jeg accepterer at afbud senere end ${FREE_CANCEL_HOURS} timer før koster <b>${gebyr} kr.</b> på MobilePay ${MOBILEPAY}.`
         : `Jeg accepterer afbudsreglerne. Denne behandling er fritaget for gebyr.`}</span></label>`
-    + `<button class="btn" id="aiConfirm" style="margin-top:12px;width:100%" disabled>Bekræft booking</button>`);
+    + `<button class="btn" id="aiConfirm" style="margin-top:12px;width:100%" disabled>Bekræft booking</button>`
+    + `<div class="err" id="aiErr" style="margin-top:8px"></div>`);
 
   const acc = el.querySelector('#aiAccept'), btn = el.querySelector('#aiConfirm');
   btn.style.opacity = '.5';
   acc.addEventListener('change', ()=>{ btn.disabled = !acc.checked; btn.style.opacity = acc.checked ? '' : '.5'; });
-  btn.addEventListener('click', ()=> aiSubmit(d, btn));
+  btn.addEventListener('click', ()=> aiSubmit(d, el));
+  el.style.maxWidth = '100%';   // kortet indeholder felter og skal have hele bredden
   C.stage = 'done'; chatQuick([]);
+  el.querySelector('#aiName').focus();
 }
 
-async function aiSubmit(d, btn){
+async function aiSubmit(d, el){
+  const btn = el.querySelector('#aiConfirm'), err = el.querySelector('#aiErr');
+  const name  = el.querySelector('#aiName').value.trim();
+  const phone = el.querySelector('#aiPhone').value.trim();
+  const email = el.querySelector('#aiEmail').value.trim();
+  const fail = m => { err.textContent = m; err.style.display = 'block'; };
+  err.style.display = 'none';
+
+  if (!name) return fail('Skriv dit navn.');
+  if (phone.replace(/\D/g,'').length < 8) return fail('Telefonnummeret ser ikke rigtigt ud.');
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return fail('Skriv din email — vi bruger den til bekræftelse og påmindelse.');
+
   btn.disabled = true; btn.innerHTML = '<span class="spin"></span>Booker…';
-  const persons = d.serviceIds.map((id,i)=>({ serviceId:id, name: i===0 ? d.name : '' }));
+  const persons = d.serviceIds.map((id,i)=>({ serviceId:id, name: i===0 ? name : '' }));
   let res;
   try {
     res = await api('createBooking', { persons, date:d.date, time:d.time,
-      name:d.name, phone:d.phone, email:d.email, note:'Booket via assistenten', accepted:true });
+      name, phone, email, note:'Booket via assistenten', accepted:true });
   } catch(e){
     btn.disabled = false; btn.textContent = 'Bekræft booking';
-    chatPush('bot',`Netværksfejl — din booking blev muligvis ikke oprettet. Ring til os på ${TLF_LINK} for en sikkerheds skyld.`);
-    return;
+    return fail('Netværksfejl — ring til os på ' + SALON_TLF + ' for en sikkerheds skyld.');
   }
   if (res.error === 'taken'){
-    btn.remove();
+    el.remove();
     C.stage = 'book'; C.slots = null; C.slotsFor = null;
     C.ai.push({ role:'user', content:'(tiden blev optaget imens — foreslå en anden)' });
     await aiStep();
@@ -1114,12 +1134,11 @@ async function aiSubmit(d, btn){
   }
   if (res.error){
     btn.disabled = false; btn.textContent = 'Bekræft booking';
-    chatPush('bot', esc(res.message || res.error));
-    return;
+    return fail(res.message || res.error);
   }
-  btn.remove();
+  el.querySelector('#aiConfirm').remove();
   chatPush('bot',`Så er den i hus. ✅\n\n<b>${daDato(d.date)} kl. ${d.time}</b>\nHovedgaden 54, 4295 Stenlille\n\n`
-    + `Du får en bekræftelse på ${esc(d.email)} og en påmindelse ${REMINDER_HOURS} timer før. Vi ses!`);
+    + `Du får en bekræftelse på ${esc(email)} og en påmindelse ${REMINDER_HOURS} timer før. Vi ses!`);
 }
 
 /* Afbudslink fra bekræftelses- eller påmindelsesmailen */
