@@ -343,8 +343,11 @@ function setup() {
   var cal = getCalendar_();
   logBooking_([new Date(), '', '', 'SETUP', '', '', '', '', 'Backend initialiseret', '', 'setup']);
   feeSheet_(); // opret fanen "Gebyrer" med det samme, så frisøren kan finde den
+  // Opret ALDRIG en tom property her: Script Properties-siden nægter at gemme
+  // så længe bare ét værdifelt er tomt, og så ryger alle andre ændringer med.
   var props = PropertiesService.getScriptProperties();
-  if (!props.getProperty('BARBER_EMAIL')) props.setProperty('BARBER_EMAIL', '');
+  if (!props.getProperty('BARBER_EMAIL'))
+    Logger.log('BARBER_EMAIL mangler — tilføj den selv med frisørens rigtige adresse, ellers får han ingen besked om bookinger og afbud.');
   Logger.log('Kalender: ' + cal.getId());
   Logger.log('Regneark: ' + bookingSpreadsheet_().getUrl());
   Logger.log('Husk at sætte BARBER_EMAIL i Script Properties, og del evt. kalenderen "' + CAL_NAME + '" med frisøren.');
