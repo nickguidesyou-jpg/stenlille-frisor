@@ -8,7 +8,7 @@
 <meta property="og:title" content="Stenlille Herrefrisør — Book tid online">
 <meta property="og:description" content="Skarp klipning i Stenlille. Book din tid online.">
 <meta property="og:image" content="https://stenlilleherrefrisor.dk/img/hero.webp">
-<meta name="theme-color" content="#14120e">
+<meta name="theme-color" content="#0d1411">
 <link rel="icon" href="img/logo.png">
 <link rel="apple-touch-icon" href="img/logo.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -27,8 +27,16 @@
 </script>
 <style>
 :root{
-  --bg:#14120e; --bg2:#1d1a14; --card:#211d16; --line:#35301f;
-  --gold:#b8973a; --gold-light:#d4b45c; --cream:#f5f0e8; --muted:#a89f8d;
+  /* Dyb grøn grund med messing-accent. Alle palet-afhængige farver står her —
+     ingen af dem må hårdkodes længere nede, ellers kan paletten ikke skiftes ét sted. */
+  --bg:#0d1411; --bg2:#121b17; --card:#17211c; --line:#2a3830;
+  --gold:#c19a45; --gold-light:#dfc07b; --gold-deep:#8d6d28;
+  --cream:#f2f0e7; --muted:#93a099;
+  --ink:#101a15;        /* tekst oven på messing */
+  --sel:#1e2c25;        /* valgt dag/tid og regelboks */
+  --veil:13,20,17;      /* grundfarven som rgb-liste, til gennemsigtige lag */
+  /* Åbent-lyset skal skille sig ud fra en grøn side, så det er lysere end paletten */
+  --status:#74dd97; --status-rgb:116,221,151; --status-line:#2f6b45;
 }
 *{margin:0;padding:0;box-sizing:border-box}
 html{scroll-behavior:smooth}
@@ -39,7 +47,7 @@ img{max-width:100%;display:block}
 .wrap{max-width:1060px;margin:0 auto;padding:0 20px}
 
 /* Nav */
-nav{position:sticky;top:0;z-index:50;background:rgba(20,18,14,.92);backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+nav{position:sticky;top:0;z-index:50;background:rgba(var(--veil),.92);backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
 .nav-in{display:flex;align-items:center;justify-content:space-between;height:62px}
 .logo{font-family:'Fraunces',serif;font-size:19px;color:var(--cream);text-decoration:none;letter-spacing:.3px;
   display:flex;align-items:center;gap:10px}
@@ -48,11 +56,11 @@ nav{position:sticky;top:0;z-index:50;background:rgba(20,18,14,.92);backdrop-filt
 .nav-links{display:flex;gap:22px;align-items:center}
 .nav-links a{color:var(--muted);text-decoration:none;font-size:14.5px;font-weight:500}
 .nav-links a:hover{color:var(--cream)}
-.nav-links a.btn{color:#171308;font-weight:700}
-.nav-links a.btn:hover{color:#171308}
+.nav-links a.btn{color:var(--ink);font-weight:700}
+.nav-links a.btn:hover{color:var(--ink)}
 /* Mobilmenuen håndteres i opgraderings-blokken nederst i stylesheetet */
 
-.btn{display:inline-block;background:var(--gold);color:#171308;border:none;border-radius:8px;
+.btn{display:inline-block;background:var(--gold);color:var(--ink);border:none;border-radius:8px;
   padding:11px 22px;font-weight:700;font-size:15px;cursor:pointer;text-decoration:none;
   font-family:'Inter Tight',sans-serif;transition:transform .12s,background .12s}
 .btn:hover{background:var(--gold-light);transform:translateY(-1px)}
@@ -61,7 +69,7 @@ nav{position:sticky;top:0;z-index:50;background:rgba(20,18,14,.92);backdrop-filt
 
 /* Hero */
 header{position:relative;min-height:86vh;display:flex;align-items:center;overflow:hidden}
-.hero-bg{position:absolute;inset:0;background:radial-gradient(ellipse at 70% 30%,#2b2415 0%,var(--bg) 70%)}
+.hero-bg{position:absolute;inset:0;background:radial-gradient(ellipse at 70% 30%,#1b2a22 0%,var(--bg) 70%)}
 .hero-bg img{width:100%;height:100%;object-fit:cover;object-position:center 22%;opacity:.38}
 /* 20px vandret matcher .wrap — uden det klistrer teksten til kanten under 1060px bredde */
 .hero-in{position:relative;padding:90px 20px}
@@ -91,7 +99,7 @@ section{padding:74px 0}
 .svc-meta{color:var(--muted);font-size:13px}
 .svc button{align-self:flex-start;margin-top:6px;background:none;border:1px solid var(--gold);color:var(--gold-light);
   border-radius:7px;padding:8px 16px;font-weight:600;font-size:14px;cursor:pointer;font-family:inherit}
-.svc button:hover{background:var(--gold);color:#171308}
+.svc button:hover{background:var(--gold);color:var(--ink)}
 
 /* Galleri */
 #galleri{background:var(--bg2)}
@@ -124,7 +132,7 @@ section{padding:74px 0}
 footer{border-top:1px solid var(--line);padding:34px 0;color:var(--muted);font-size:13.5px;text-align:center}
 
 /* Booking-modal */
-.modal-back{position:fixed;inset:0;background:rgba(10,9,6,.75);backdrop-filter:blur(4px);z-index:100;
+.modal-back{position:fixed;inset:0;background:rgba(var(--veil),.82);backdrop-filter:blur(4px);z-index:100;
   display:none;align-items:flex-end;justify-content:center}
 .modal-back.open{display:flex}
 @media(min-width:640px){.modal-back{align-items:center}}
@@ -160,12 +168,12 @@ footer{border-top:1px solid var(--line);padding:34px 0;color:var(--muted);font-s
 .date-chip{flex:0 0 auto;background:var(--card);border:1px solid var(--line);border-radius:10px;padding:9px 13px;
   cursor:pointer;text-align:center;color:var(--cream);font-family:inherit;font-size:13px;min-width:64px}
 .date-chip .d{font-size:17px;font-weight:700;display:block}
-.date-chip.sel{border-color:var(--gold);background:#2b2415}
+.date-chip.sel{border-color:var(--gold);background:var(--sel)}
 .date-chip:disabled{opacity:.35;cursor:default}
 .slots{display:grid;grid-template-columns:repeat(auto-fill,minmax(76px,1fr));gap:8px;min-height:44px}
 .slot{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:9px 0;cursor:pointer;
   color:var(--cream);font-family:inherit;font-size:14.5px;text-align:center}
-.slot:hover,.slot.sel{border-color:var(--gold);background:#2b2415}
+.slot:hover,.slot.sel{border-color:var(--gold);background:var(--sel)}
 .slots-msg{color:var(--muted);font-size:14.5px;grid-column:1/-1;padding:8px 0}
 
 .f-row{margin-bottom:14px}
@@ -187,7 +195,7 @@ footer{border-top:1px solid var(--line);padding:34px 0;color:var(--muted);font-s
 .done p{color:var(--muted);font-size:15px}
 
 /* Afbudsregler */
-.rules-note{background:#2b2415;border:1px solid var(--line);border-left:3px solid var(--gold);border-radius:9px;
+.rules-note{background:var(--sel);border:1px solid var(--line);border-left:3px solid var(--gold);border-radius:9px;
   padding:10px 14px;font-size:13.5px;color:var(--muted);margin-bottom:16px}
 .rules-note b{color:var(--gold-light)}
 .rules-box{background:var(--card);border:1px solid var(--line);border-radius:11px;padding:15px 16px;margin-bottom:16px}
@@ -220,9 +228,9 @@ footer{border-top:1px solid var(--line);padding:34px 0;color:var(--muted);font-s
   height:310px;overflow-y:auto;display:flex;flex-direction:column;gap:10px;margin-bottom:14px}
 .chat-msg{max-width:86%;padding:10px 14px;border-radius:14px;font-size:14.5px;line-height:1.5;white-space:pre-wrap}
 .chat-msg.bot{background:var(--bg2);border:1px solid var(--line);border-bottom-left-radius:4px;align-self:flex-start}
-.chat-msg.me{background:var(--gold);color:#171308;border-bottom-right-radius:4px;align-self:flex-end;font-weight:500}
+.chat-msg.me{background:var(--gold);color:var(--ink);border-bottom-right-radius:4px;align-self:flex-end;font-weight:500}
 .chat-msg b{color:var(--gold-light)}
-.chat-msg.me b{color:#171308}
+.chat-msg.me b{color:var(--ink)}
 .chat-msg a{color:var(--gold-light)}
 .chat-row{display:flex;gap:8px}
 .chat-row input{flex:1;background:var(--card);border:1px solid var(--line);border-radius:9px;color:var(--cream);
@@ -252,13 +260,13 @@ html.js .reveal.in{opacity:1;transform:none}
 nav{transition:box-shadow .25s,background .25s}
 .nav-in{transition:height .25s}
 nav.small .nav-in{height:52px}
-nav.small{box-shadow:0 10px 30px -18px #000;background:rgba(20,18,14,.97)}
+nav.small{box-shadow:0 10px 30px -18px #000;background:rgba(var(--veil),.97)}
 .open-pill{display:inline-flex;align-items:center;gap:7px;font-size:12.5px;font-weight:600;color:var(--muted);
   border:1px solid var(--line);border-radius:20px;padding:5px 12px;white-space:nowrap}
-.open-pill .dot{width:7px;height:7px;border-radius:50%;background:#79736a;flex:0 0 auto}
-.open-pill.is-open{color:#8fd39a;border-color:#2f5a37}
-.open-pill.is-open .dot{background:#57c46c;animation:pulse 2.6s infinite}
-@keyframes pulse{0%{box-shadow:0 0 0 0 rgba(87,196,108,.55)}70%{box-shadow:0 0 0 7px rgba(87,196,108,0)}100%{box-shadow:0 0 0 0 rgba(87,196,108,0)}}
+.open-pill .dot{width:7px;height:7px;border-radius:50%;background:var(--muted);flex:0 0 auto}
+.open-pill.is-open{color:var(--status);border-color:var(--status-line)}
+.open-pill.is-open .dot{background:var(--status);animation:pulse 2.6s infinite}
+@keyframes pulse{0%{box-shadow:0 0 0 0 rgba(var(--status-rgb),.55)}70%{box-shadow:0 0 0 7px rgba(var(--status-rgb),0)}100%{box-shadow:0 0 0 0 rgba(var(--status-rgb),0)}}
 .nav-toggle{display:none;background:none;border:1px solid var(--line);border-radius:9px;padding:9px 10px;
   cursor:pointer;color:var(--cream);line-height:0}
 .nav-toggle:hover{border-color:var(--gold)}
@@ -275,7 +283,7 @@ nav.small{box-shadow:0 10px 30px -18px #000;background:rgba(20,18,14,.97)}
 
 /* Hero */
 .hero-scrim{position:absolute;inset:0;
-  background:linear-gradient(to top,var(--bg) 1%,rgba(20,18,14,.62) 45%,rgba(20,18,14,.2) 100%)}
+  background:linear-gradient(to top,var(--bg) 1%,rgba(var(--veil),.62) 45%,rgba(var(--veil),.2) 100%)}
 .hero-bg img{animation:kenburns 30s ease-in-out infinite alternate}
 @keyframes kenburns{from{transform:scale(1)}to{transform:scale(1.09)}}
 h1,h2,.sec-head p{text-wrap:balance}
@@ -319,8 +327,8 @@ h1,h2,.sec-head p{text-wrap:balance}
 .review::before{content:'\201D';position:absolute;top:-6px;right:14px;font-family:'Fraunces',serif;
   font-size:78px;color:var(--gold);opacity:.11;line-height:1;pointer-events:none}
 .rev-who{display:flex;align-items:center;gap:10px}
-.rev-av{width:31px;height:31px;border-radius:50%;background:linear-gradient(140deg,var(--gold-light),#8a6f22);
-  color:#171308;font-weight:700;font-size:12.5px;display:grid;place-items:center;flex:0 0 auto}
+.rev-av{width:31px;height:31px;border-radius:50%;background:linear-gradient(140deg,var(--gold-light),var(--gold-deep));
+  color:var(--ink);font-weight:700;font-size:12.5px;display:grid;place-items:center;flex:0 0 auto}
 
 /* Åbningstider */
 .hours tr.today td{color:var(--gold-light);font-weight:600}
@@ -328,7 +336,7 @@ h1,h2,.sec-head p{text-wrap:balance}
 
 /* Fast book-bjælke i bunden på mobil */
 .mobile-cta{position:fixed;left:0;right:0;bottom:0;z-index:60;display:none;gap:10px;align-items:stretch;
-  padding:10px 16px calc(10px + env(safe-area-inset-bottom));background:rgba(20,18,14,.95);
+  padding:10px 16px calc(10px + env(safe-area-inset-bottom));background:rgba(var(--veil),.95);
   backdrop-filter:blur(12px);border-top:1px solid var(--line);
   transform:translateY(115%);transition:transform .32s cubic-bezier(.2,.7,.3,1)}
 .mobile-cta.show{transform:none}

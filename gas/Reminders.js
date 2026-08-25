@@ -65,12 +65,12 @@ function remindByEmail_(email, name, what, time, bookingId, token) {
     subject: 'Husk din tid i dag kl. ' + time + ' ✂️',
     htmlBody:
       '<div style="font-family:Georgia,serif;max-width:520px;margin:0 auto;color:#1d1a14">' +
-      '<h2 style="color:#b8973a;border-bottom:2px solid #b8973a;padding-bottom:8px">Stenlille Herrefrisør</h2>' +
+      '<h2 style="color:#1c3329;border-bottom:2px solid #c19a45;padding-bottom:8px">Stenlille Herrefrisør</h2>' +
       '<p>Hej ' + esc_(name) + ',</p>' +
       '<p>Bare en venlig påmindelse: du har tid til <b>' + esc_(what) + '</b> i dag kl. <b>' + time + '</b>.</p>' +
       '<p>Hovedgaden 54, 4295 Stenlille</p>' +
-      '<p style="background:#faf6ee;border-left:3px solid #b8973a;padding:10px 14px">' +
-      'Kan du ikke nå det? <a href="' + cancelUrl + '" style="color:#b8973a">Meld afbud her</a> — ' +
+      '<p style="background:#f4f6f2;border-left:3px solid #c19a45;padding:10px 14px">' +
+      'Kan du ikke nå det? <a href="' + cancelUrl + '" style="color:#8d6d28">Meld afbud her</a> — ' +
       'afbud er gratis indtil ' + FREE_CANCEL_HOURS + ' timer før din tid.</p>' +
       '<p style="color:#999;font-size:13px;margin-top:24px">Vi ses!<br>' +
       'Stenlille Herrefrisør · Hovedgaden 54, 4295 Stenlille · +45 ' + SALON_PHONE + '</p>' +
