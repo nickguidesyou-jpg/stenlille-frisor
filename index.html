@@ -287,9 +287,32 @@ nav.small{box-shadow:0 10px 30px -18px #000;background:rgba(var(--veil),.97)}
 .hero-bg img{animation:kenburns 30s ease-in-out infinite alternate}
 @keyframes kenburns{from{transform:scale(1)}to{transform:scale(1.09)}}
 h1,h2,.sec-head p{text-wrap:balance}
-.hero-write{margin-top:16px;color:var(--muted);font-size:14.5px}
-.hero-write a{text-decoration:none;font-weight:600}
-.hero-write a:hover{text-decoration:underline;text-underline-offset:3px}
+/* Skrivefelt til assistenten — direkte i hero'en, så man ikke skal klikke sig ind først */
+.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;
+  clip:rect(0 0 0 0);white-space:nowrap;border:0}
+.ask{margin-top:26px;max-width:540px}
+.ask-bar{display:flex;align-items:center;gap:11px;padding:8px 8px 8px 10px;
+  background:rgba(var(--veil),.72);border:1px solid var(--line);border-radius:15px;
+  backdrop-filter:blur(8px);transition:border-color .18s,box-shadow .18s}
+.ask-bar:focus-within{border-color:var(--gold);box-shadow:0 0 0 3px rgba(193,154,69,.15)}
+.ask-face{width:46px;height:46px;flex:0 0 auto;border-radius:50%;background:var(--card);
+  border:1px solid var(--gold-deep);color:var(--gold-light);display:grid;place-items:center;
+  transition:transform .25s,border-color .25s}
+.ask-bar:hover .ask-face,.ask-bar:focus-within .ask-face{transform:rotate(-5deg) scale(1.05);border-color:var(--gold)}
+.ask-bar input{flex:1;min-width:0;background:none;border:0;color:var(--cream);
+  font-family:inherit;font-size:16px;padding:9px 2px} /* 16px: undgår iOS auto-zoom */
+.ask-bar input::placeholder{color:var(--muted)}
+.ask-bar input:focus{outline:none}
+.ask-send{flex:0 0 auto;width:42px;height:42px;border:0;border-radius:11px;cursor:pointer;
+  background:var(--gold);color:var(--ink);display:grid;place-items:center;
+  transition:background .15s,transform .12s}
+.ask-send:hover{background:var(--gold-light);transform:translateY(-1px)}
+.ask-hint{display:flex;flex-wrap:wrap;gap:7px;margin-top:11px}
+.ask-hint button{background:rgba(var(--veil),.55);border:1px solid var(--line);border-radius:20px;
+  color:var(--muted);font-family:inherit;font-size:13px;padding:6px 13px;cursor:pointer;
+  transition:border-color .15s,color .15s}
+.ask-hint button:hover{border-color:var(--gold);color:var(--gold-light)}
+@media(max-width:520px){.ask-hint button:nth-child(n+4){display:none}}
 .hero-trust{display:flex;gap:14px;flex-wrap:wrap;align-items:center;margin-top:28px;color:var(--muted);font-size:14px}
 .hero-trust b{color:var(--cream)}
 .hero-trust .sep{opacity:.35}
@@ -388,7 +411,36 @@ h1,h2,.sec-head p{text-wrap:balance}
       <button class="btn" onclick="openBooking()">Book tid online</button>
       <a class="hero-phone" href="tel:+4542945567">eller ring <b>42 94 55 67</b></a>
     </div>
-    <p class="hero-write"><a href="#" onclick="openChat();return false">✦ Eller skriv til assistenten</a> — fx »to klipninger på lørdag«</p>
+    <div class="ask">
+      <div class="ask-bar">
+        <span class="ask-face" aria-hidden="true">
+          <svg viewBox="0 0 48 48" width="32" height="32" fill="none" stroke="currentColor"
+               stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M15.6 21.2c-.4-5.4 3.3-9.3 8.4-9.3 4.7 0 8.1 2.9 8.4 7.4"/>
+            <path d="M15.6 21.2c2.9-.5 5.1-1.9 6.6-4 2.2 2.5 5.6 3.9 10.2 4.1"/>
+            <path d="M16.8 21v4.3a7.2 7.2 0 0 0 14.4 0V21"/>
+            <path d="M20.8 24.7h.01M27.2 24.7h.01" stroke-width="2.9"/>
+            <path d="M20.4 28.5c1.2-1 2.4-1 3.6.1 1.2-1.1 2.4-1.1 3.6-.1"/>
+            <path d="M22.2 31.3c1.2.7 2.4.7 3.6 0"/>
+            <path d="M11.5 42.5v-2c0-3.1 2.5-4.8 5.6-5.7l2.8-.8M36.5 42.5v-2c0-3.1-2.5-4.8-5.6-5.7l-2.8-.8"/>
+            <path d="M20.2 34.4 24 38.6l3.8-4.2"/>
+          </svg>
+        </span>
+        <label class="sr-only" for="askInput">Skriv til bookingassistenten</label>
+        <input id="askInput" placeholder="Skriv fx »to klipninger på lørdag«"
+               autocomplete="off" enterkeyhint="send" onkeydown="if(event.key==='Enter')askSubmit()">
+        <button class="ask-send" onclick="askSubmit()" aria-label="Send til assistenten">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+               stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h13M12 5l7 7-7 7"/></svg>
+        </button>
+      </div>
+      <div class="ask-hint">
+        <button onclick="askSay('Jeg vil gerne booke en klipning')">En klipning</button>
+        <button onclick="askSay('To klipninger på lørdag')">To klipninger på lørdag</button>
+        <button onclick="askSay('Klipning og skæg i morgen')">Klipning og skæg i morgen</button>
+        <button onclick="askSay('Jeg vil aflyse min tid')">Meld afbud</button>
+      </div>
+    </div>
     <div class="hero-trust">
       <span class="open-pill" id="heroOpen"><span class="dot"></span><span class="txt">Åbningstider</span></span>
       <span class="sep">·</span>
@@ -914,6 +966,22 @@ function closeChat(){
   document.body.style.overflow = '';
 }
 function chatSay(text){ document.getElementById('chatInput').value = text; chatSend(); }
+
+/* Skrivefeltet i hero'en: åbner chatten og sender beskeden med det samme,
+   så kunden slipper for at klikke sig ind først. */
+function askSubmit(){
+  const el = document.getElementById('askInput');
+  const text = el.value.trim();
+  el.value = '';
+  openChat();
+  if (text) chatSay(text);
+}
+function askSay(text){
+  document.getElementById('askInput').value = text;
+  askSubmit();
+}
+// Den lange pladsholder bliver klippet af på telefoner — giv dem en kortere
+if (innerWidth < 560) document.getElementById('askInput').placeholder = 'Skriv hvad du vil booke…';
 function chatSend(){
   const inp = document.getElementById('chatInput');
   const text = inp.value.trim();
