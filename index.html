@@ -287,6 +287,9 @@ nav.small{box-shadow:0 10px 30px -18px #000;background:rgba(var(--veil),.97)}
 .hero-bg img{animation:kenburns 30s ease-in-out infinite alternate}
 @keyframes kenburns{from{transform:scale(1)}to{transform:scale(1.09)}}
 h1,h2,.sec-head p{text-wrap:balance}
+.hero-write{margin-top:16px;color:var(--muted);font-size:14.5px}
+.hero-write a{text-decoration:none;font-weight:600}
+.hero-write a:hover{text-decoration:underline;text-underline-offset:3px}
 .hero-trust{display:flex;gap:14px;flex-wrap:wrap;align-items:center;margin-top:28px;color:var(--muted);font-size:14px}
 .hero-trust b{color:var(--cream)}
 .hero-trust .sep{opacity:.35}
@@ -385,6 +388,7 @@ h1,h2,.sec-head p{text-wrap:balance}
       <button class="btn" onclick="openBooking()">Book tid online</button>
       <a class="hero-phone" href="tel:+4542945567">eller ring <b>42 94 55 67</b></a>
     </div>
+    <p class="hero-write"><a href="#" onclick="openChat();return false">✦ Eller skriv til assistenten</a> — fx »to klipninger på lørdag«</p>
     <div class="hero-trust">
       <span class="open-pill" id="heroOpen"><span class="dot"></span><span class="txt">Åbningstider</span></span>
       <span class="sep">·</span>
@@ -498,7 +502,7 @@ h1,h2,.sec-head p{text-wrap:balance}
 <footer><div class="wrap">
   Stenlille Herrefrisør · Hovedgaden 54, 4295 Stenlille · <a href="tel:+4542945567">42 94 55 67</a><br>
   Priser er vejledende og inkl. moms. Betaling sker i salonen.<br>
-  <a href="#" onclick="openChat();return false">Skal du melde afbud?</a>
+  <a href="#" onclick="openChat();return false">Skriv til os — book en tid eller meld afbud</a>
 </div></footer>
 
 <!-- Fast book-bjælke på mobil -->
@@ -865,7 +869,9 @@ async function confirmBooking(){
  * Bevidst uden sprogmodel: ingen driftsomkostning, og den kan ikke finde
  * på at love kunden noget frisøren ikke har sagt ja til.
  */
-const C = { stage:'idle', intent:'cancel', booking:null, busy:false };
+const C = { stage:'idle', intent:'cancel', booking:null, busy:false,
+            ai:[], slots:null, slotsFor:null, draft:null };
+let AI_ON = null;   // null = ikke undersøgt endnu; slås op første gang chatten bruges
 const RX_CANCEL = /aflys|afbud|annull|cancel|kan ikke komme|kommer ikke|forhindret|melde fra|udebli|springe over/i;
 const RX_WHEN   = /hvornår|hvad tid|hvilken tid|min tid|har jeg/i;
 const RX_YES    = /^\s*(ja|jep|jeps|yes|ok|okay|bekræft|det gør jeg)/i;
@@ -896,9 +902,10 @@ function openChat(opts){
   document.body.style.overflow = 'hidden';
   document.getElementById('chatLog').innerHTML = '';
   Object.assign(C, { stage:'idle', intent:'cancel', booking:null, busy:false });
+  Object.assign(C, { ai:[], slots:null, slotsFor:null, draft:null });
   if (!opts || !opts.silent){
-    chatPush('bot','Hej! 👋 Jeg kan hjælpe dig med at melde afbud til din tid.\n\nSkriv fx <b>»jeg vil aflyse min tid«</b>.');
-    chatQuick(['Jeg vil aflyse min tid','Hvornår er min tid?']);
+    chatPush('bot','Hej! 👋 Jeg kan <b>booke en tid</b> til dig eller <b>melde afbud</b>.\n\nSkriv fx »jeg vil gerne booke to klipninger på lørdag«.');
+    chatQuick(['Jeg vil booke en tid','Jeg vil aflyse min tid']);
   } else chatQuick([]);
   setTimeout(()=>document.getElementById('chatInput').focus(), 60);
 }
@@ -925,14 +932,16 @@ async function handleChat(text){
   try {
     if (C.stage === 'confirm') { await chatConfirm(text); return; }
     if (C.stage === 'phone')   { await chatLookup(text);  return; }
+    if (C.stage === 'book'){ await chatBook(text); return; }
     if (RX_CANCEL.test(text) || RX_WHEN.test(text)){
       C.intent = RX_CANCEL.test(text) ? 'cancel' : 'when';
       C.stage = 'phone';
       chatPush('bot','Det klarer vi. 🙂\n\nSkriv dit <b>telefonnummer</b>, så finder jeg din tid.');
       return;
     }
-    chatPush('bot',`Det er jeg ikke helt sikker på jeg forstår. Jeg kan hjælpe med at <b>melde afbud</b> eller sige <b>hvornår din tid er</b>.\n\nEr det noget andet, så ring til os på ${TLF_LINK}.`);
-    chatQuick(['Jeg vil aflyse min tid','Hvornår er min tid?']);
+    // Alt andet forstås som en bookingforespørgsel
+    C.stage = 'book';
+    await chatBook(text);
   } catch(e){
     chatPush('bot',`Der gik noget galt hos mig. Ring til os på ${TLF_LINK}, så ordner vi det.`);
   } finally { C.busy = false; }
@@ -1000,6 +1009,117 @@ async function chatConfirm(text){
     return;
   }
   chatPush('bot', `Det kunne jeg desværre ikke gennemføre: ${esc(res.error||'ukendt fejl')}\n\nRing til os på ${TLF_LINK}.`);
+}
+
+/* ---------- AI-booking ----------
+ * Modellen håndterer kun sproget. Ledige tider hentes altid fra serveren,
+ * og selve bookingen sker først når kunden trykker på bekræft-knappen —
+ * assistenten kan ikke oprette noget på egen hånd.
+ */
+const daDato = iso => { const d = new Date(iso+'T12:00:00');
+  return `${DAY_SHORT[d.getDay()]} d. ${d.getDate()}. ${MONTH_SHORT[d.getMonth()]}`; };
+
+async function chatBook(text){
+  if (AI_ON === null){
+    try { AI_ON = !!(await api('config')).ai; } catch(e){ AI_ON = false; }
+  }
+  if (!AI_ON){
+    C.stage = 'idle';
+    chatPush('bot','Booking klarer du hurtigst med knappen — det tager under et minut.\n\n'
+      + '<a href="#" onclick="closeChat();openBooking();return false">Åbn booking</a>');
+    return;
+  }
+  C.ai.push({ role:'user', content:text });
+  await aiStep();
+}
+
+async function aiStep(){
+  const wait = chatPush('bot','<span class="spin"></span>Tænker…');
+  let res;
+  try { res = await api('assistant', { messages:C.ai, slots:C.slots }); }
+  catch(e){ res = { netfejl:true }; }
+  wait.remove();
+
+  if (res.netfejl){
+    chatPush('bot',`Jeg kan ikke få fat i systemet lige nu. Prøv igen, eller ring på ${TLF_LINK}.`);
+    return;
+  }
+  if (res.error){
+    C.stage = 'idle';
+    chatPush('bot', (res.reply ? esc(res.reply) : `Der gik noget galt. Ring til os på ${TLF_LINK}.`)
+      + '<br><br><a href="#" onclick="closeChat();openBooking();return false">Åbn booking i stedet</a>');
+    return;
+  }
+
+  C.ai.push({ role:'assistant', content:JSON.stringify({ reply:res.reply, draft:res.draft, ready:res.ready }) });
+  C.draft = res.draft;
+  chatPush('bot', esc(res.reply).replace(/\n/g,'<br>'));
+
+  // Kender vi behandlinger og dag, henter vi de rigtige ledige tider.
+  // De ryger med i næste kald, så modellen kun kan foreslå tider der findes.
+  const key = res.draft.serviceIds.join(',') + '@' + res.draft.date;
+  if (res.draft.serviceIds.length && res.draft.date && C.slotsFor !== key){
+    C.slotsFor = key;
+    try {
+      const av = await api('getAvailability', { date:res.draft.date, serviceIds:res.draft.serviceIds });
+      C.slots = av && av.slots ? av.slots : [];
+    } catch(e){ C.slots = null; }
+  }
+
+  if (res.ready){ aiConfirmCard(res.draft); return; }
+
+  // Vis de faktiske tider som knapper — hurtigere end at skrive dem, og altid korrekte
+  if (C.slots && C.slots.length && !res.draft.time) chatQuick(C.slots.slice(0,8));
+}
+
+function aiConfirmCard(d){
+  const navne = d.serviceIds.map(id => SERVICES.find(s=>s.id===id).name);
+  const pris  = d.serviceIds.reduce((a,id)=> a + SERVICES.find(s=>s.id===id).price, 0);
+  const gebyr = d.serviceIds.reduce((a,id)=> a + (LATE_FEE[id] ?? 100), 0);
+  const el = chatPush('bot',
+    `<b>${esc(navne.join(' + '))}</b><br>${daDato(d.date)} kl. <b>${d.time}</b><br>`
+    + `${esc(d.name)} · ${esc(d.phone)} · ${esc(d.email)}<br>I alt <b>${pris} kr.</b>`
+    + `<label class="rules-accept" style="margin-top:13px;padding-top:13px">`
+    + `<input type="checkbox" id="aiAccept">`
+    + `<span>${gebyr
+        ? `Jeg accepterer at afbud senere end ${FREE_CANCEL_HOURS} timer før koster <b>${gebyr} kr.</b> på MobilePay ${MOBILEPAY}.`
+        : `Jeg accepterer afbudsreglerne. Denne behandling er fritaget for gebyr.`}</span></label>`
+    + `<button class="btn" id="aiConfirm" style="margin-top:12px;width:100%" disabled>Bekræft booking</button>`);
+
+  const acc = el.querySelector('#aiAccept'), btn = el.querySelector('#aiConfirm');
+  btn.style.opacity = '.5';
+  acc.addEventListener('change', ()=>{ btn.disabled = !acc.checked; btn.style.opacity = acc.checked ? '' : '.5'; });
+  btn.addEventListener('click', ()=> aiSubmit(d, btn));
+  C.stage = 'done'; chatQuick([]);
+}
+
+async function aiSubmit(d, btn){
+  btn.disabled = true; btn.innerHTML = '<span class="spin"></span>Booker…';
+  const persons = d.serviceIds.map((id,i)=>({ serviceId:id, name: i===0 ? d.name : '' }));
+  let res;
+  try {
+    res = await api('createBooking', { persons, date:d.date, time:d.time,
+      name:d.name, phone:d.phone, email:d.email, note:'Booket via assistenten', accepted:true });
+  } catch(e){
+    btn.disabled = false; btn.textContent = 'Bekræft booking';
+    chatPush('bot',`Netværksfejl — din booking blev muligvis ikke oprettet. Ring til os på ${TLF_LINK} for en sikkerheds skyld.`);
+    return;
+  }
+  if (res.error === 'taken'){
+    btn.remove();
+    C.stage = 'book'; C.slots = null; C.slotsFor = null;
+    C.ai.push({ role:'user', content:'(tiden blev optaget imens — foreslå en anden)' });
+    await aiStep();
+    return;
+  }
+  if (res.error){
+    btn.disabled = false; btn.textContent = 'Bekræft booking';
+    chatPush('bot', esc(res.message || res.error));
+    return;
+  }
+  btn.remove();
+  chatPush('bot',`Så er den i hus. ✅\n\n<b>${daDato(d.date)} kl. ${d.time}</b>\nHovedgaden 54, 4295 Stenlille\n\n`
+    + `Du får en bekræftelse på ${esc(d.email)} og en påmindelse ${REMINDER_HOURS} timer før. Vi ses!`);
 }
 
 /* Afbudslink fra bekræftelses- eller påmindelsesmailen */

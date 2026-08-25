@@ -65,6 +65,8 @@ function doPost(e) {
       case 'cancelBooking':   return json_(cancelBooking(req.bookingId, req.cancelToken));
       case 'findBooking':     return json_(findBookingByPhone(req.phone));
       case 'getBooking':      return json_(getBooking(req.bookingId, req.cancelToken));
+      case 'assistant':       return json_(assistantTurn(req));
+      case 'config':          return json_({ ai: aiEnabled_() });
       default:                return json_({ error: 'unknown action' });
     }
   } catch (err) {
