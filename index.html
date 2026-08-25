@@ -183,6 +183,54 @@ footer{border-top:1px solid var(--line);padding:34px 0;color:var(--muted);font-s
 .done .big{font-size:52px;margin-bottom:10px}
 .done h3{margin-bottom:10px}
 .done p{color:var(--muted);font-size:15px}
+
+/* Afbudsregler */
+.rules-note{background:#2b2415;border:1px solid var(--line);border-left:3px solid var(--gold);border-radius:9px;
+  padding:10px 14px;font-size:13.5px;color:var(--muted);margin-bottom:16px}
+.rules-note b{color:var(--gold-light)}
+.rules-box{background:var(--card);border:1px solid var(--line);border-radius:11px;padding:15px 16px;margin-bottom:16px}
+.rules-box h4{font-family:'Inter Tight',sans-serif;font-size:13px;color:var(--muted);text-transform:uppercase;
+  letter-spacing:1.4px;margin-bottom:9px}
+.rules-box ul{list-style:none;font-size:14px;color:var(--muted);display:flex;flex-direction:column;gap:7px}
+.rules-box li{padding-left:20px;position:relative;line-height:1.45}
+.rules-box li::before{content:'·';position:absolute;left:7px;color:var(--gold);font-weight:700}
+.rules-box b{color:var(--cream)}
+.rules-accept{display:flex;gap:10px;align-items:flex-start;margin-top:13px;padding-top:13px;
+  border-top:1px solid var(--line);cursor:pointer;font-size:14px}
+.rules-accept input{flex:0 0 auto;width:19px;height:19px;margin-top:1px;accent-color:var(--gold);cursor:pointer}
+
+/* Følg os / konkurrence */
+#folg{background:var(--bg2)}
+.social-card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:32px 28px;text-align:center}
+.social-card h2{font-size:clamp(24px,3.4vw,32px);margin-bottom:10px}
+.social-card>p{color:var(--muted);max-width:520px;margin:0 auto;font-size:15.5px}
+.social-links{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;margin:22px 0 4px}
+.social-btn{display:inline-flex;align-items:center;gap:8px;background:var(--bg2);border:1px solid var(--line);
+  border-radius:10px;padding:10px 17px;color:var(--cream);text-decoration:none;font-size:14.5px;font-weight:500;
+  transition:border-color .15s,transform .12s}
+.social-btn:hover{border-color:var(--gold);color:var(--gold-light);transform:translateY(-1px)}
+.social-bonus{margin-top:20px;padding-top:18px;border-top:1px solid var(--line);color:var(--muted);font-size:14.5px}
+.social-bonus b{color:var(--gold-light)}
+.social-small{color:var(--muted);font-size:12.5px;margin-top:14px;opacity:.75}
+
+/* Afbuds-chat */
+.chat-log{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px;
+  height:310px;overflow-y:auto;display:flex;flex-direction:column;gap:10px;margin-bottom:14px}
+.chat-msg{max-width:86%;padding:10px 14px;border-radius:14px;font-size:14.5px;line-height:1.5;white-space:pre-wrap}
+.chat-msg.bot{background:var(--bg2);border:1px solid var(--line);border-bottom-left-radius:4px;align-self:flex-start}
+.chat-msg.me{background:var(--gold);color:#171308;border-bottom-right-radius:4px;align-self:flex-end;font-weight:500}
+.chat-msg b{color:var(--gold-light)}
+.chat-msg.me b{color:#171308}
+.chat-msg a{color:var(--gold-light)}
+.chat-row{display:flex;gap:8px}
+.chat-row input{flex:1;background:var(--card);border:1px solid var(--line);border-radius:9px;color:var(--cream);
+  padding:11px 13px;font-size:16px;font-family:inherit}
+.chat-row input:focus{outline:none;border-color:var(--gold)}
+.chat-row button{flex:0 0 auto;padding:11px 18px}
+.chat-quick{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:10px}
+.chat-quick button{background:none;border:1px solid var(--line);border-radius:20px;color:var(--muted);
+  padding:6px 13px;font-size:13px;cursor:pointer;font-family:inherit}
+.chat-quick button:hover{border-color:var(--gold);color:var(--gold-light)}
 </style>
 </head>
 <body>
@@ -283,10 +331,40 @@ footer{border-top:1px solid var(--line);padding:34px 0;color:var(--muted);font-s
   </div>
 </div></section>
 
+<section id="folg"><div class="wrap">
+  <div class="social-card">
+    <h2>Følg med — og vind en tur i stolen</h2>
+    <p>Vi trækker jævnligt lod blandt vores følgere om en <b>gratis klipning</b> eller <b>gratis voks</b>.
+       Følg os, så du ikke går glip af det.</p>
+    <div class="social-links" id="socialLinks"></div>
+    <p class="social-bonus">🎁 <b>Tag en ven med</b> i salonen — så er I begge med i lodtrækningen.</p>
+    <p class="social-small">Vinderen får direkte besked. Ingen købspligt.</p>
+  </div>
+</div></section>
+
 <footer><div class="wrap">
   Stenlille Herrefrisør · Hovedgaden 54, 4295 Stenlille · <a href="tel:+4542945567">42 94 55 67</a><br>
-  Priser er vejledende og inkl. moms. Betaling sker i salonen.
+  Priser er vejledende og inkl. moms. Betaling sker i salonen.<br>
+  <a href="#" onclick="openChat();return false">Skal du melde afbud?</a>
 </div></footer>
+
+<!-- Afbuds-chat -->
+<div class="modal-back" id="chatBack" onclick="if(event.target===this)closeChat()">
+  <div class="modal" role="dialog" aria-modal="true" aria-label="Meld afbud">
+    <div class="modal-head">
+      <h3>Meld afbud</h3>
+      <button class="modal-close" onclick="closeChat()" aria-label="Luk">×</button>
+    </div>
+    <div class="steps">Skriv til os — så finder vi din tid.</div>
+    <div class="chat-log" id="chatLog"></div>
+    <div class="chat-quick" id="chatQuick"></div>
+    <div class="chat-row">
+      <input id="chatInput" placeholder="Skriv her…" autocomplete="off"
+             onkeydown="if(event.key==='Enter')chatSend()">
+      <button class="btn" onclick="chatSend()">Send</button>
+    </div>
+  </div>
+</div>
 
 <!-- Booking-modal -->
 <div class="modal-back" id="modalBack" onclick="if(event.target===this)closeBooking()">
@@ -327,6 +405,32 @@ const SERVICES = [
 ];
 const CLOSED_DOWS = [0]; // søndag lukket
 const HORIZON_DAYS = 28;
+
+/* Afbudsregler — skal matche LATE_FEE og FREE_CANCEL_HOURS i gas/Fees.js */
+const FREE_CANCEL_HOURS = 2;
+const REMINDER_HOURS = 3;
+const MOBILEPAY = '868311';
+const SALON_TLF = '42 94 55 67';
+const LATE_FEE = { 1:100, 2:200, 3:100, 4:100, 5:50, 6:100 };
+const feeOf = p => LATE_FEE[p.serviceId] ?? 100;
+const totalFee = () => B.persons.reduce((a,p)=>a+feeOf(p),0);
+
+/* Sociale medier — tomme links vises ikke.
+   Facebook, TikTok og Snapchat mangler stadig fra frisøren. */
+const SOCIAL = [
+  { key:'instagram', name:'Instagram', url:'https://www.instagram.com/stenlilleherrefrisor/',
+    icon:'<rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="4.5"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none"/>' },
+  { key:'facebook', name:'Facebook', url:'',
+    icon:'<path d="M14 8.5V6.8c0-.8.3-1.3 1.3-1.3H17V2.6c-.4-.1-1.3-.2-2.3-.2-2.3 0-3.9 1.4-3.9 4v2.1H8.4V12h2.4v9.4h3.2V12h2.4l.4-3.5H14z" fill="currentColor" stroke="none"/>' },
+  { key:'tiktok', name:'TikTok', url:'',
+    icon:'<path d="M15.5 3c.4 2.2 1.9 3.7 4.1 3.9v2.6c-1.4.1-2.7-.3-4-1v5.9c0 4.5-4.4 6.9-8 4.8-2.4-1.4-3-4.6-1.6-6.9 1-1.6 2.9-2.5 4.8-2.2v2.7c-.4-.1-.8-.2-1.2-.1-1.2.1-2 1.2-1.8 2.4.2 1.1 1.3 1.9 2.5 1.7 1.1-.2 1.8-1.1 1.8-2.2V3h3.4z" fill="currentColor" stroke="none"/>' },
+  { key:'snapchat', name:'Snapchat', url:'',
+    icon:'<path d="M12 2.5c2.6 0 4.3 1.9 4.3 4.6 0 .8-.1 1.5-.1 2 .4.2.9.2 1.4 0 .5-.2 1 .1 1.1.5.1.5-.2.9-.9 1.2-.7.3-1.4.5-1.4 1 0 .8 2.2 3 4 3.4.4.1.5.5.4.8-.3.8-1.8 1.1-2.7 1.2-.2.5-.2 1.2-.6 1.4-.4.2-1.1-.1-1.9-.1-1.1 0-1.7.2-2.4.8-.7.5-1.3.9-2.2.9s-1.5-.4-2.2-.9c-.7-.6-1.3-.8-2.4-.8-.8 0-1.5.3-1.9.1-.4-.2-.4-.9-.6-1.4-.9-.1-2.4-.4-2.7-1.2-.1-.3 0-.7.4-.8 1.8-.4 4-2.6 4-3.4 0-.5-.7-.7-1.4-1-.7-.3-1-.7-.9-1.2.1-.4.6-.7 1.1-.5.5.2 1 .2 1.4 0 0-.5-.1-1.2-.1-2C7.7 4.4 9.4 2.5 12 2.5z" fill="currentColor" stroke="none"/>' }
+];
+document.getElementById('socialLinks').innerHTML = SOCIAL.filter(s=>s.url).map(s=>`
+  <a class="social-btn" href="${s.url}" target="_blank" rel="noopener">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+      stroke-linecap="round" stroke-linejoin="round">${s.icon}</svg>${s.name}</a>`).join('');
 
 /* ================= Hjælpere ================= */
 async function api(action, payload={}){
@@ -429,6 +533,8 @@ function renderStep(){
           ${B.persons.length>1?`<span>I alt: <b>${totalPrice()} kr.</b> · ${totalMin()} min.</span>`:''}
         </div>
       </div>
+      <div class="rules-note">Husk: afbud er <b>gratis indtil ${FREE_CANCEL_HOURS} timer før</b> din tid.
+        Melder du afbud senere, koster det <b>${totalFee()} kr.</b> — du ser reglerne og godkender dem i næste trin.</div>
       <div class="dates" id="dateRow">` + days.map(d=>{
         const iso = fmtDateISO(d), closed = CLOSED_DOWS.includes(d.getDay());
         return `<button class="date-chip" data-iso="${iso}" ${closed?'disabled':''} onclick="pickDate('${iso}')">
@@ -459,12 +565,30 @@ function renderStep(){
       <div class="f-row"><label>${B.persons.length>1?'Dit navn (person 1) *':'Navn *'}</label><input id="fName" autocomplete="name" placeholder="Dit fulde navn"></div>
       ${extraNames}
       <div class="f-row"><label>Telefon *</label><input id="fPhone" type="tel" autocomplete="tel" placeholder="12 34 56 78"></div>
-      <div class="f-row"><label>Email (valgfri — til bekræftelse)</label><input id="fEmail" type="email" autocomplete="email" placeholder="din@email.dk"></div>
+      <div class="f-row"><label>Email *</label><input id="fEmail" type="email" autocomplete="email" placeholder="din@email.dk">
+        <div style="color:var(--muted);font-size:12.5px;margin-top:5px">Vi sender bekræftelse, afbudslink og en påmindelse ${REMINDER_HOURS} timer før din tid. Skriv derfor dine rigtige oplysninger.</div></div>
       <div class="f-row"><label>Bemærkning (valgfri)</label><textarea id="fNote" rows="2" placeholder="Fx ønsker til klipningen"></textarea></div>
+
+      <div class="rules-box">
+        <h4>Afbudsregler</h4>
+        <ul>
+          <li>Afbud er <b>gratis indtil ${FREE_CANCEL_HOURS} timer før</b> din tid — meld det via linket i din mail eller her på siden.</li>
+          <li>Melder du afbud <b>senere end ${FREE_CANCEL_HOURS} timer før</b>, eller udebliver du, koster det et gebyr på <b>${totalFee()} kr.</b></li>
+          <li>Gebyret betales på <b>MobilePay ${MOBILEPAY}</b>.</li>
+          <li>Er gebyret ikke betalt, kan du <b>ikke booke en ny tid</b> før det er bragt i orden.</li>
+        </ul>
+        <label class="rules-accept">
+          <input type="checkbox" id="fAccept">
+          <span>Jeg har læst og accepterer afbudsreglerne.</span>
+        </label>
+      </div>
+
       <div class="modal-actions">
         <button class="btn btn-ghost" onclick="B.step=2;renderStep()">Tilbage</button>
-        <button class="btn" id="confirmBtn" onclick="confirmBooking()">Bekræft booking</button>
+        <button class="btn" id="confirmBtn" onclick="confirmBooking()" disabled style="opacity:.5">Bekræft booking</button>
       </div>`;
+    const acc = document.getElementById('fAccept'), cBtn = document.getElementById('confirmBtn');
+    acc.addEventListener('change', ()=>{ cBtn.disabled = !acc.checked; cBtn.style.opacity = acc.checked ? '' : '.5'; });
   }
 }
 
@@ -516,16 +640,22 @@ async function confirmBooking(){
   const note = document.getElementById('fNote').value.trim();
   if (!name || !phone) { setErr('Udfyld venligst navn og telefonnummer.'); return; }
   if (phone.replace(/\D/g,'').length < 8) { setErr('Telefonnummeret ser ikke rigtigt ud.'); return; }
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { setErr('Skriv din email — vi bruger den til bekræftelse og påmindelse.'); return; }
+  if (!document.getElementById('fAccept').checked) { setErr('Accepter venligst afbudsreglerne.'); return; }
   setErr('');
   const btn = document.getElementById('confirmBtn');
   btn.disabled = true; btn.innerHTML = '<span class="spin"></span>Booker…';
   try {
     const persons = B.persons.map((p,i)=>({ serviceId: p.serviceId,
       name: i===0 ? name : (document.getElementById('fName'+i)?.value.trim() || '') }));
-    const res = await api('createBooking', { persons, date: B.date, time: B.time, name, phone, email, note });
+    const res = await api('createBooking', { persons, date: B.date, time: B.time, name, phone, email, note, accepted: true });
     if (res.error === 'taken') {
       setErr(res.message || 'Tiden er lige blevet optaget — vælg en anden.');
       B.step = 2; renderStep(); return;
+    }
+    if (res.error === 'blocked') {
+      setErr(res.message || 'Du har et ubetalt gebyr — ring til os på ' + SALON_TLF + '.');
+      btn.disabled = false; btn.textContent = 'Bekræft booking'; return;
     }
     if (res.error) { setErr('Der gik noget galt: ' + res.error); btn.disabled=false; btn.textContent='Bekræft booking'; return; }
     const d = new Date(B.date+'T12:00:00');
@@ -540,7 +670,8 @@ async function confirmBooking(){
         <p>${DAY_SHORT[d.getDay()]} d. ${d.getDate()}. ${MONTH_SHORT[d.getMonth()]}${multi ? '' : ' kl. <b>'+B.time+'</b>'}<br>
         ${lines.join('<br>')}<br>
         Hovedgaden 54, 4295 Stenlille</p>
-        <p style="margin-top:12px">${email ? 'Du får en bekræftelse på email med et annullérings-link.' : 'Bliver ' + (multi?'I':'du') + ' forhindret, så ring på 42 94 55 67.'}</p>
+        <p style="margin-top:12px">Du får en bekræftelse på email nu, og en påmindelse ${REMINDER_HOURS} timer før ${multi?'jeres':'din'} tid.<br>
+        Bliver ${multi?'I':'du'} forhindret, så meld afbud senest ${FREE_CANCEL_HOURS} timer før — så er det gratis.</p>
         <p style="margin-top:10px"><a href="${gcalUrl(B.date, B.time, totalMin(), 'Stenlille Herrefrisør — ' + (multi ? persons.length + ' personer' : esc(svcOf(B.persons[0]).name)))}" target="_blank" rel="noopener">📅 Føj til din kalender</a></p>
         <div class="modal-actions"><button class="btn" onclick="closeBooking()">Færdig</button></div>
       </div>`;
@@ -550,17 +681,160 @@ async function confirmBooking(){
   }
 }
 
-/* ================= Annullering via mail-link ================= */
+/* ================= Afbuds-chat =================
+ * Regelbaseret samtale — genkender hvad kunden skriver ud fra nøgleord.
+ * Bevidst uden sprogmodel: ingen driftsomkostning, og den kan ikke finde
+ * på at love kunden noget frisøren ikke har sagt ja til.
+ */
+const C = { stage:'idle', intent:'cancel', booking:null, busy:false };
+const RX_CANCEL = /aflys|afbud|annull|cancel|kan ikke komme|kommer ikke|forhindret|melde fra|udebli|springe over/i;
+const RX_WHEN   = /hvornår|hvad tid|hvilken tid|min tid|har jeg/i;
+const RX_YES    = /^\s*(ja|jep|jeps|yes|ok|okay|bekræft|det gør jeg)/i;
+const RX_NO     = /^\s*(nej|niks|no|fortryd|glem det|behold)/i;
+const TLF_LINK  = `<a href="tel:+4542945567">${SALON_TLF}</a>`;
+
+function humanLeft(h){
+  if (h >= 48) return 'godt ' + Math.floor(h/24) + ' dage';
+  if (h >= 24) return 'over et døgn';
+  if (h >= 2)  return Math.round(h) + ' timer';
+  return Math.max(1, Math.round(h*60)) + ' minutter';
+}
+function chatPush(who, html){
+  const log = document.getElementById('chatLog');
+  const d = document.createElement('div');
+  d.className = 'chat-msg ' + who;
+  d.innerHTML = html;
+  log.appendChild(d);
+  log.scrollTop = log.scrollHeight;
+  return d;
+}
+function chatQuick(options){
+  document.getElementById('chatQuick').innerHTML = (options||[])
+    .map(o=>`<button onclick="chatSay(${JSON.stringify(o).replace(/"/g,'&quot;')})">${esc(o)}</button>`).join('');
+}
+function openChat(opts){
+  document.getElementById('chatBack').classList.add('open');
+  document.body.style.overflow = 'hidden';
+  document.getElementById('chatLog').innerHTML = '';
+  Object.assign(C, { stage:'idle', intent:'cancel', booking:null, busy:false });
+  if (!opts || !opts.silent){
+    chatPush('bot','Hej! 👋 Jeg kan hjælpe dig med at melde afbud til din tid.\n\nSkriv fx <b>»jeg vil aflyse min tid«</b>.');
+    chatQuick(['Jeg vil aflyse min tid','Hvornår er min tid?']);
+  } else chatQuick([]);
+  setTimeout(()=>document.getElementById('chatInput').focus(), 60);
+}
+function closeChat(){
+  document.getElementById('chatBack').classList.remove('open');
+  document.body.style.overflow = '';
+}
+function chatSay(text){ document.getElementById('chatInput').value = text; chatSend(); }
+function chatSend(){
+  const inp = document.getElementById('chatInput');
+  const text = inp.value.trim();
+  if (!text || C.busy) return;
+  inp.value = '';
+  chatPush('me', esc(text));
+  chatQuick([]);
+  handleChat(text);
+}
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape' && document.getElementById('chatBack').classList.contains('open')) closeChat();
+});
+
+async function handleChat(text){
+  C.busy = true;
+  try {
+    if (C.stage === 'confirm') { await chatConfirm(text); return; }
+    if (C.stage === 'phone')   { await chatLookup(text);  return; }
+    if (RX_CANCEL.test(text) || RX_WHEN.test(text)){
+      C.intent = RX_CANCEL.test(text) ? 'cancel' : 'when';
+      C.stage = 'phone';
+      chatPush('bot','Det klarer vi. 🙂\n\nSkriv dit <b>telefonnummer</b>, så finder jeg din tid.');
+      return;
+    }
+    chatPush('bot',`Det er jeg ikke helt sikker på jeg forstår. Jeg kan hjælpe med at <b>melde afbud</b> eller sige <b>hvornår din tid er</b>.\n\nEr det noget andet, så ring til os på ${TLF_LINK}.`);
+    chatQuick(['Jeg vil aflyse min tid','Hvornår er min tid?']);
+  } catch(e){
+    chatPush('bot',`Der gik noget galt hos mig. Ring til os på ${TLF_LINK}, så ordner vi det.`);
+  } finally { C.busy = false; }
+}
+
+async function chatLookup(text){
+  const digits = text.replace(/\D/g,'');
+  if (digits.length < 8){ chatPush('bot','Det ligner ikke helt et telefonnummer — prøv igen med de 8 cifre.'); return; }
+  const wait = chatPush('bot','<span class="spin"></span>Et øjeblik, jeg kigger efter…');
+  let res; try { res = await api('findBooking',{ phone:digits }); } catch(e){ res = { netfejl:true }; }
+  wait.remove();
+  if (res.netfejl){ chatPush('bot',`Jeg kan ikke få fat i systemet lige nu. Prøv igen om lidt, eller ring på ${TLF_LINK}.`); return; }
+  if (!res.found){
+    C.stage = 'idle';
+    chatPush('bot',`Jeg kan ikke finde nogen kommende tid på det nummer. 🤔\n\nHar du booket med et andet nummer? Ellers ring til os på ${TLF_LINK}.`);
+    return;
+  }
+  C.booking = res;
+  showBooking();
+}
+
+function showBooking(){
+  const b = C.booking;
+  chatPush('bot', `Jeg har fundet din tid:\n\n<b>${esc(b.what)}</b>\n${esc(b.when)}`);
+  if (b.tooLate){
+    chatPush('bot', `Der er kun ${humanLeft(b.hoursLeft)} til, og afbud skal meldes senest <b>${FREE_CANCEL_HOURS} timer før</b>.\n\n`
+      + `Jeg kan derfor ikke aflyse tiden online. Melder du alligevel afbud, koster det et gebyr på <b>${b.fee} kr.</b> `
+      + `på MobilePay <b>${MOBILEPAY}</b>, og du kan først booke igen når det er betalt.\n\n`
+      + `Skriv <b>ja</b> hvis du vil melde afbud på de vilkår — ellers ring til os på ${TLF_LINK}.`);
+  } else if (C.intent === 'when'){
+    chatPush('bot', `Der er ${humanLeft(b.hoursLeft)} til. Skal jeg melde afbud? Skriv <b>ja</b>, hvis du vil — det er gratis indtil ${FREE_CANCEL_HOURS} timer før.`);
+  } else {
+    chatPush('bot', `Der er ${humanLeft(b.hoursLeft)} til, så afbuddet er <b>gratis</b>. 👍\n\nSkriv <b>ja</b> for at melde afbud.`);
+  }
+  C.stage = 'confirm';
+  chatQuick(['Ja','Nej, behold tiden']);
+}
+
+async function chatConfirm(text){
+  if (RX_NO.test(text)){
+    C.stage = 'done'; chatQuick([]);
+    chatPush('bot','Fint — din tid står stadig. Vi ses! ✂️');
+    return;
+  }
+  if (!RX_YES.test(text)){
+    chatPush('bot','Skriv <b>ja</b> for at melde afbud, eller <b>nej</b> for at beholde tiden.');
+    return;
+  }
+  const b = C.booking;
+  const wait = chatPush('bot','<span class="spin"></span>Et øjeblik…');
+  let res; try { res = await api('cancelBooking',{ bookingId:b.bookingId, cancelToken:b.cancelToken }); }
+  catch(e){ res = { netfejl:true }; }
+  wait.remove();
+
+  if (res.netfejl){ chatPush('bot',`Jeg kunne ikke få fat i systemet. Ring til os på ${TLF_LINK}, så ordner vi det.`); return; }
+  C.stage = 'done'; chatQuick([]);
+  if (res.ok){
+    chatPush('bot','Så er din tid meldt afbud. ✅\nTak fordi du sagde til i god tid — nu kan en anden nå at få tiden.\n\n'
+      + '<a href="#" onclick="closeChat();openBooking();return false">Book en ny tid</a>');
+    return;
+  }
+  if (res.error === 'too_late'){
+    chatPush('bot', `Dit afbud er noteret, men det kom for sent.\n\nGebyr: <b>${res.fee} kr.</b>\nBetales på MobilePay <b>${res.mobilepay}</b>\n\n`
+      + `Når gebyret er betalt, åbner vi for booking igen. Spørgsmål? Ring på ${TLF_LINK}.`);
+    return;
+  }
+  chatPush('bot', `Det kunne jeg desværre ikke gennemføre: ${esc(res.error||'ukendt fejl')}\n\nRing til os på ${TLF_LINK}.`);
+}
+
+/* Afbudslink fra bekræftelses- eller påmindelsesmailen */
 (async function(){
   const p = new URLSearchParams(location.search);
   const id = p.get('annuller'), t = p.get('t');
   if (!id || !t) return;
   history.replaceState(null,'',location.pathname);
-  if (!confirm('Vil du annullere din tid hos Stenlille Herrefrisør?')) return;
-  try {
-    const res = await api('cancelBooking', { bookingId:id, cancelToken:t });
-    alert(res.ok ? 'Din tid er annulleret. Tak for beskeden!' : ('Kunne ikke annullere: ' + (res.error||'ukendt fejl')));
-  } catch(e){ alert('Netværksfejl — ring til os på 42 94 55 67 for at melde afbud.'); }
+  openChat({ silent:true });
+  const wait = chatPush('bot','<span class="spin"></span>Et øjeblik, jeg henter din tid…');
+  let res; try { res = await api('getBooking',{ bookingId:id, cancelToken:t }); } catch(e){ res = { netfejl:true }; }
+  wait.remove();
+  if (res && res.found){ C.booking = res; C.intent = 'cancel'; showBooking(); }
+  else chatPush('bot',`Jeg kan ikke finde den tid — måske er den allerede aflyst. Driller det, så ring til os på ${TLF_LINK}.`);
 })();
 </script>
 </body>

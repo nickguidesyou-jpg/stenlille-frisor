@@ -6,15 +6,17 @@
  *   { action: 'getAvailability', date, serviceIds }    → { slots: ['10:10', ...], open: bool }
  *     (serviceIds: array — flere personer bookes i forlængelse af hinanden;
  *      serviceId (ental) understøttes stadig)
- *   { action: 'createBooking', persons: [{serviceId, name}], date, time, name, phone, email?, note? }
+ *   { action: 'createBooking', persons: [{serviceId, name}], date, time, name, phone, email, note? }
  *                                                      → { ok, bookingId, cancelToken, schedule }
- *   { action: 'cancelBooking', bookingId, cancelToken }→ { ok }  (bookingId kan være kommasepareret)
+ *
+ * Afbud, gebyr og opslag ligger i Fees.js; påmindelser i Reminders.js.
  *
  * Script Properties:
  *   CALENDAR_ID   — id på den dedikerede booking-kalender (oprettes af setup())
  *   BARBER_EMAIL  — frisørens email (modtager bekræftelser/afbud)
  *   SHEET_ID      — booking-log-regneark (oprettes automatisk)
  *   SITE_URL      — bruges til annullér-links i mails
+ *   SMS_TOKEN     — valgfri: tænder SMS-påmindelser (koster penge hos udbyderen)
  */
 
 var TZ = 'Europe/Copenhagen';
@@ -61,6 +63,8 @@ function doPost(e) {
       case 'getAvailability': return json_(getAvailability(req.date, req.serviceIds || req.serviceId));
       case 'createBooking':   return json_(createBooking(req));
       case 'cancelBooking':   return json_(cancelBooking(req.bookingId, req.cancelToken));
+      case 'findBooking':     return json_(findBookingByPhone(req.phone));
+      case 'getBooking':      return json_(getBooking(req.bookingId, req.cancelToken));
       default:                return json_({ error: 'unknown action' });
     }
   } catch (err) {
@@ -164,8 +168,19 @@ function createBooking(req) {
   var email = String(req.email || '').trim();
   var note = String(req.note || '').trim();
   if (!name || !phone) return { error: 'navn og telefon er påkrævet' };
+  if (normPhone_(phone).length < 8) return { error: 'telefonnummeret ser ikke rigtigt ud' };
+  // Email er påkrævet: uden den kan vi hverken sende bekræftelse, afbudslink eller påmindelse
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return { error: 'en gyldig email er påkrævet' };
+  if (!req.accepted) return { error: 'reglerne skal accepteres' };
   if (!/^\d{4}-\d{2}-\d{2}$/.test(String(req.date)) || !/^\d{2}:\d{2}$/.test(String(req.time)))
     return { error: 'ugyldig dato/tid' };
+
+  // Ubetalt gebyr fra et tidligere sent afbud spærrer for nye bookinger
+  var owed = unpaidFeeFor_(phone);
+  if (owed) return { error: 'blocked', amount: owed.amount, mobilepay: MOBILEPAY_NUMBER,
+    message: 'Der står et ubetalt gebyr på ' + owed.amount + ' kr. for et tidligere sent afbud. ' +
+      'Betal via MobilePay ' + MOBILEPAY_NUMBER + ' og ring til os på ' + SALON_PHONE +
+      ', så åbner vi for booking igen.' };
 
   // Personer: array [{serviceId, name}] — eller gammelt format med ét serviceId
   var rawPersons = Array.isArray(req.persons) && req.persons.length
@@ -209,7 +224,7 @@ function createBooking(req) {
             (email ? '\nEmail: ' + email : '') +
             (note ? '\nBemærkning: ' + note : '') +
             '\nPris: ' + p.svc.price + ' kr.' +
-            '\n[token:' + token + ']' }
+            '\n[token:' + token + '][svc:' + p.svc.id + ']' }
       ));
       t = e.getTime();
     }
@@ -233,37 +248,6 @@ function createBooking(req) {
   catch (e) { logBooking_([new Date(), req.date, req.time, 'MAILFEJL', '', name, phone, email, String(e), ids, 'mailfejl']); }
 
   return { ok: true, bookingId: ids, cancelToken: token, schedule: schedule };
-}
-
-/* ---------- Annullér ---------- */
-
-function cancelBooking(bookingId, cancelToken) {
-  if (!bookingId || !cancelToken) return { error: 'mangler id/token' };
-  var ids = String(bookingId).split(',');
-  var cancelled = [];
-  for (var i = 0; i < ids.length; i++) {
-    var ev = getCalendar_().getEventById(ids[i]);
-    if (!ev) continue; // allerede annulleret
-    if ((ev.getDescription() || '').indexOf('[token:' + cancelToken + ']') === -1)
-      return { error: 'ugyldigt annullérings-link' };
-    if (ev.getStartTime() < new Date()) return { error: 'Tiden er allerede passeret.' };
-    var title = ev.getTitle();
-    var when = fmtWhen_(ev.getStartTime());
-    ev.deleteEvent();
-    cancelled.push(title + ' (' + when + ')');
-    logBooking_([new Date(), '', '', '', '', '', '', '', 'ANNULLERET: ' + title + ' (' + when + ')', ids[i], 'annulleret']);
-  }
-  if (!cancelled.length) return { error: 'Bookingen findes ikke — måske er den allerede annulleret.' };
-
-  var barber = PropertiesService.getScriptProperties().getProperty('BARBER_EMAIL');
-  if (barber) {
-    try {
-      MailApp.sendEmail(barber, 'Afbud: ' + cancelled[0],
-        'Kunden har annulleret:\n\n' + cancelled.join('\n') +
-        '\n\nTiden er fjernet fra kalenderen og kan bookes af andre.');
-    } catch (e) { /* annulleringen er gennemført — mail-fejl må ikke rulle den tilbage */ }
-  }
-  return { ok: true };
 }
 
 /* ---------- Mails ---------- */
@@ -302,8 +286,11 @@ function sendMails_(persons, schedule, dateStr, time, name, phone, email, note, 
         '<tr><td style="padding:4px 12px 4px 0;color:#777">Adresse</td><td>Hovedgaden 54, 4295 Stenlille</td></tr>' +
         '</table>' +
         (note ? '<p style="color:#777">Din bemærkning: ' + esc_(note) + '</p>' : '') +
-        '<p>Bliver ' + (multi ? 'I' : 'du') + ' forhindret? <a href="' + cancelUrl + '" style="color:#b8973a">Annullér ' +
-        (multi ? 'tiderne' : 'din tid') + ' her</a> — så kan andre få dem.</p>' +
+        '<p style="background:#faf6ee;border-left:3px solid #b8973a;padding:10px 14px">' +
+        'Bliver ' + (multi ? 'I' : 'du') + ' forhindret? <a href="' + cancelUrl + '" style="color:#b8973a">Meld afbud her</a>.<br>' +
+        'Afbud er <b>gratis indtil ' + FREE_CANCEL_HOURS + ' timer før</b> din tid. Melder du afbud senere — eller ' +
+        'udebliver du — koster det et gebyr på ' + feeText_(persons) + ' via MobilePay <b>' + MOBILEPAY_NUMBER + '</b>, ' +
+        'og du kan ikke booke igen før det er betalt.</p>' +
         '<p style="color:#999;font-size:13px;margin-top:24px">Vi glæder os til at se ' + (multi ? 'jer' : 'dig') + '!<br>' +
         'Stenlille Herrefrisør · Hovedgaden 54, 4295 Stenlille · +45 42 94 55 67</p>' +
         '</div>'
@@ -329,19 +316,23 @@ function esc_(s) {
 
 /* ---------- Booking-log (Sheet) ---------- */
 
+/** Booking-regnearket — oprettes første gang det bruges. Deles med Fees.js. */
+function bookingSpreadsheet_() {
+  var props = PropertiesService.getScriptProperties();
+  var id = props.getProperty('SHEET_ID');
+  var ss = null;
+  if (id) { try { ss = SpreadsheetApp.openById(id); } catch (e) { ss = null; } }
+  if (!ss) {
+    ss = SpreadsheetApp.create('Stenlille Herrefrisør — Bookinger');
+    ss.getActiveSheet().appendRow(['Oprettet', 'Dato', 'Tid', 'Behandling', 'Pris', 'Navn', 'Telefon', 'Email', 'Bemærkning', 'BookingId', 'Status']);
+    props.setProperty('SHEET_ID', ss.getId());
+  }
+  return ss;
+}
+
 function logBooking_(row) {
-  try {
-    var props = PropertiesService.getScriptProperties();
-    var id = props.getProperty('SHEET_ID');
-    var ss;
-    if (id) { try { ss = SpreadsheetApp.openById(id); } catch (e) { ss = null; } }
-    if (!ss) {
-      ss = SpreadsheetApp.create('Stenlille Herrefrisør — Bookinger');
-      ss.getActiveSheet().appendRow(['Oprettet', 'Dato', 'Tid', 'Behandling', 'Pris', 'Navn', 'Telefon', 'Email', 'Bemærkning', 'BookingId', 'Status']);
-      props.setProperty('SHEET_ID', ss.getId());
-    }
-    ss.getSheets()[0].appendRow(row);
-  } catch (e) { /* log må aldrig vælte en booking */ }
+  try { bookingSpreadsheet_().getSheets()[0].appendRow(row); }
+  catch (e) { /* log må aldrig vælte en booking */ }
 }
 
 /* ---------- Engangs-opsætning ----------
@@ -351,8 +342,11 @@ function logBooking_(row) {
 function setup() {
   var cal = getCalendar_();
   logBooking_([new Date(), '', '', 'SETUP', '', '', '', '', 'Backend initialiseret', '', 'setup']);
+  feeSheet_(); // opret fanen "Gebyrer" med det samme, så frisøren kan finde den
   var props = PropertiesService.getScriptProperties();
   if (!props.getProperty('BARBER_EMAIL')) props.setProperty('BARBER_EMAIL', '');
   Logger.log('Kalender: ' + cal.getId());
+  Logger.log('Regneark: ' + bookingSpreadsheet_().getUrl());
   Logger.log('Husk at sætte BARBER_EMAIL i Script Properties, og del evt. kalenderen "' + CAL_NAME + '" med frisøren.');
+  Logger.log('Kør derefter setupTriggers() én gang for at starte påmindelser ' + REMINDER_HOURS + ' timer før kundernes tider.');
 }
