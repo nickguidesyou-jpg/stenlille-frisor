@@ -566,9 +566,31 @@ const FREE_CANCEL_HOURS = 2;
 const REMINDER_HOURS = 3;
 const MOBILEPAY = '868311';
 const SALON_TLF = '42 94 55 67';
-const LATE_FEE = { 1:100, 2:200, 3:100, 4:100, 5:50, 6:100 };
+/* Gebyret gælder alle behandlinger på nær voks (0 = fritaget) */
+const LATE_FEE = { 1:100, 2:200, 3:100, 4:100, 5:0, 6:100 };
 const feeOf = p => LATE_FEE[p.serviceId] ?? 100;
 const totalFee = () => B.persons.reduce((a,p)=>a+feeOf(p),0);
+
+/* Reglerne formuleres forskelligt alt efter om der er gebyr på det valgte */
+function feeRules(){
+  const fee = totalFee();
+  if (!fee) return {
+    note: `Afbud på denne behandling er <b>altid gratis</b> — sig blot til i god tid, så en anden kan nå at få tiden.`,
+    items: [
+      `Afbud er <b>gratis</b> — meld det via linket i din mail eller her på siden.`,
+      `Denne behandling er <b>fritaget for afbudsgebyr</b>.`
+    ]
+  };
+  return {
+    note: `Husk: afbud er <b>gratis indtil ${FREE_CANCEL_HOURS} timer før</b> din tid. Melder du afbud senere, koster det <b>${fee} kr.</b> — du ser reglerne og godkender dem i næste trin.`,
+    items: [
+      `Afbud er <b>gratis indtil ${FREE_CANCEL_HOURS} timer før</b> din tid — meld det via linket i din mail eller her på siden.`,
+      `Melder du afbud <b>senere end ${FREE_CANCEL_HOURS} timer før</b>, eller udebliver du, koster det et gebyr på <b>${fee} kr.</b>`,
+      `Gebyret betales på <b>MobilePay ${MOBILEPAY}</b>.`,
+      `Er gebyret ikke betalt, kan du <b>ikke booke en ny tid</b> før det er bragt i orden.`
+    ]
+  };
+}
 
 /* Sociale medier — tomme links vises ikke.
    Facebook, TikTok og Snapchat mangler stadig fra frisøren. */
@@ -688,8 +710,7 @@ function renderStep(){
           ${B.persons.length>1?`<span>I alt: <b>${totalPrice()} kr.</b> · ${totalMin()} min.</span>`:''}
         </div>
       </div>
-      <div class="rules-note">Husk: afbud er <b>gratis indtil ${FREE_CANCEL_HOURS} timer før</b> din tid.
-        Melder du afbud senere, koster det <b>${totalFee()} kr.</b> — du ser reglerne og godkender dem i næste trin.</div>
+      <div class="rules-note">${feeRules().note}</div>
       <div class="dates" id="dateRow">` + days.map(d=>{
         const iso = fmtDateISO(d), closed = CLOSED_DOWS.includes(d.getDay());
         return `<button class="date-chip" data-iso="${iso}" ${closed?'disabled':''} onclick="pickDate('${iso}')">
@@ -726,12 +747,7 @@ function renderStep(){
 
       <div class="rules-box">
         <h4>Afbudsregler</h4>
-        <ul>
-          <li>Afbud er <b>gratis indtil ${FREE_CANCEL_HOURS} timer før</b> din tid — meld det via linket i din mail eller her på siden.</li>
-          <li>Melder du afbud <b>senere end ${FREE_CANCEL_HOURS} timer før</b>, eller udebliver du, koster det et gebyr på <b>${totalFee()} kr.</b></li>
-          <li>Gebyret betales på <b>MobilePay ${MOBILEPAY}</b>.</li>
-          <li>Er gebyret ikke betalt, kan du <b>ikke booke en ny tid</b> før det er bragt i orden.</li>
-        </ul>
+        <ul>${feeRules().items.map(t=>`<li>${t}</li>`).join('')}</ul>
         <label class="rules-accept">
           <input type="checkbox" id="fAccept">
           <span>Jeg har læst og accepterer afbudsreglerne.</span>

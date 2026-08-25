@@ -288,9 +288,7 @@ function sendMails_(persons, schedule, dateStr, time, name, phone, email, note, 
         (note ? '<p style="color:#777">Din bemærkning: ' + esc_(note) + '</p>' : '') +
         '<p style="background:#faf6ee;border-left:3px solid #b8973a;padding:10px 14px">' +
         'Bliver ' + (multi ? 'I' : 'du') + ' forhindret? <a href="' + cancelUrl + '" style="color:#b8973a">Meld afbud her</a>.<br>' +
-        'Afbud er <b>gratis indtil ' + FREE_CANCEL_HOURS + ' timer før</b> din tid. Melder du afbud senere — eller ' +
-        'udebliver du — koster det et gebyr på ' + feeText_(persons) + ' via MobilePay <b>' + MOBILEPAY_NUMBER + '</b>, ' +
-        'og du kan ikke booke igen før det er betalt.</p>' +
+        cancelPolicyHtml_(persons) + '</p>' +
         '<p style="color:#999;font-size:13px;margin-top:24px">Vi glæder os til at se ' + (multi ? 'jer' : 'dig') + '!<br>' +
         'Stenlille Herrefrisør · Hovedgaden 54, 4295 Stenlille · +45 42 94 55 67</p>' +
         '</div>'

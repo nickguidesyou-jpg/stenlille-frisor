@@ -18,9 +18,9 @@ var SALON_PHONE       = '42 94 55 67';
 
 /* Gebyr pr. behandling ved afbud senere end FREE_CANCEL_HOURS.
  * Frisørens egne tal: Herreklipning 100 kr., Herreklipning + skæg 200 kr.
- * De øvrige fire har han ikke nævnt — de står til min(pris, 100).
+ * Reglen gælder alle behandlinger PÅ NÆR voks, som han har fritaget (0 = intet gebyr).
  * Vil han have andre beløb, er det kun denne linje der skal rettes. */
-var LATE_FEE = { 1: 100, 2: 200, 3: 100, 4: 100, 5: 50, 6: 100 };
+var LATE_FEE = { 1: 100, 2: 200, 3: 100, 4: 100, 5: 0, 6: 100 };
 
 var FEE_SHEET = 'Gebyrer';
 var FEE_HEADERS = ['Oprettet', 'Navn', 'Telefon', 'Behandling', 'Tidspunkt', 'Gebyr kr.', 'Betalt', 'BookingId'];
@@ -60,11 +60,22 @@ function feeForEvent_(ev) {
   return feeForService_(svcFromEvent_(ev));
 }
 
-/** Samlet gebyr for en booking under oprettelse — bruges i bekræftelsesmailen. */
-function feeText_(persons) {
+/** Samlet gebyr for en booking under oprettelse. */
+function feeTotal_(persons) {
   var total = 0;
   for (var i = 0; i < persons.length; i++) total += feeForService_(persons[i].svc);
-  return total + ' kr.';
+  return total;
+}
+
+/** Afbudsafsnittet i bekræftelsesmailen — formuleringen afhænger af om der er gebyr. */
+function cancelPolicyHtml_(persons) {
+  var fee = feeTotal_(persons);
+  if (!fee) {
+    return 'Afbud er <b>gratis</b> — men sig endelig til i god tid, så en anden kan nå at få tiden.';
+  }
+  return 'Afbud er <b>gratis indtil ' + FREE_CANCEL_HOURS + ' timer før</b> din tid. Melder du afbud senere — eller ' +
+    'udebliver du — koster det et gebyr på <b>' + fee + ' kr.</b> via MobilePay <b>' + MOBILEPAY_NUMBER + '</b>, ' +
+    'og du kan ikke booke igen før det er betalt.';
 }
 
 /* ---------- Gebyr-ark ---------- */
@@ -160,7 +171,9 @@ function getBooking(bookingId, cancelToken) {
   var hours = (s.start.getTime() - Date.now()) / 3600000;
   return { found: true, bookingId: bookingId, cancelToken: cancelToken,
     when: fmtWhen_(s.start), what: s.what, fee: s.fee,
-    hoursLeft: Math.round(hours * 10) / 10, tooLate: hours < FREE_CANCEL_HOURS };
+    hoursLeft: Math.round(hours * 10) / 10,
+    // Gebyrfri behandlinger (voks) kan altid aflyses — så er der intet at håndhæve
+    tooLate: hours < FREE_CANCEL_HOURS && s.fee > 0 };
 }
 
 /** Slår kundens førstkommende booking op ud fra telefonnummeret. */
@@ -196,7 +209,10 @@ function cancelBooking(bookingId, cancelToken) {
   if (s.start < new Date()) return { error: 'Tiden er allerede passeret.' };
 
   var hoursLeft = (s.start.getTime() - Date.now()) / 3600000;
-  if (hoursLeft < FREE_CANCEL_HOURS) return registerLateCancel_(evs, s);
+  var late = hoursLeft < FREE_CANCEL_HOURS;
+  // Er hele bookingen gebyrfri (fx kun voks), er der intet at håndhæve —
+  // så er det bedre for frisøren at tiden frigives end at den blokerer kalenderen.
+  if (late && s.fee > 0) return registerLateCancel_(evs, s);
 
   var when = fmtWhen_(s.start);
   var cancelled = [];
@@ -205,13 +221,16 @@ function cancelBooking(bookingId, cancelToken) {
     evs[i].deleteEvent();
   }
   logBooking_([new Date(), '', '', s.what, '', '', '', '',
-    'ANNULLERET i god tid (' + when + ')', bookingId, 'annulleret']);
+    (late ? 'ANNULLERET sent, men gebyrfri behandling (' : 'ANNULLERET i god tid (') + when + ')',
+    bookingId, 'annulleret']);
 
   var barber = PropertiesService.getScriptProperties().getProperty('BARBER_EMAIL');
   if (barber) {
     try {
-      MailApp.sendEmail(barber, 'Afbud: ' + cancelled[0],
-        'Kunden har annulleret i god tid:\n\n' + cancelled.join('\n') + '\n' + when +
+      MailApp.sendEmail(barber, (late ? 'Sent afbud (gebyrfri): ' : 'Afbud: ') + cancelled[0],
+        'Kunden har meldt afbud' + (late ? ' mindre end ' + FREE_CANCEL_HOURS +
+          ' timer før. Behandlingen er fritaget for gebyr, så tiden er frigivet.' : ' i god tid.') +
+        '\n\n' + cancelled.join('\n') + '\n' + when +
         '\n\nTiden er fjernet fra kalenderen og kan bookes af andre.');
     } catch (e) { /* afbuddet er gennemført — mailfejl må ikke rulle det tilbage */ }
   }
